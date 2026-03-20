@@ -1,0 +1,19 @@
+﻿{
+  "name": "quanlythuenha",
+  "private": true,
+  "version": "1.0.0",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev:frontend": "npm run dev --workspace apps/frontend",
+    "build:frontend": "npm run build --workspace apps/frontend",
+    "dev:backend": "npm run dev --workspace apps/backend",
+    "start:backend": "npm run start --workspace apps/backend",
+    "compile:contracts": "npm run compile --workspace packages/contracts",
+    "test:contracts": "npm run test --workspace packages/contracts",
+    "deploy:emerald:testnet": "npm run deploy:emerald:testnet --workspace packages/contracts",
+    "deploy:sapphire:testnet": "npm run deploy:sapphire:testnet --workspace packages/contracts"
+  }
+}
