@@ -1,0 +1,260 @@
+@startuml ERD_dApp_QuanLyThueNha
+
+skinparam linetype ortho
+skinparam roundcorner 5
+skinparam entity {
+    BackgroundColor #FEFECE
+    BorderColor #A80036
+}
+skinparam ArrowColor #A80036
+
+title Sơ đồ quan hệ (ERD) - dApp Quản Lý Thuê Nhà
+
+entity "users" as users {
+    * **id** : INT <<PK>>
+    --
+    wallet_address : VARCHAR(42) <<UNIQUE>>
+    * full_name : VARCHAR(100)
+    * email : VARCHAR(100) <<UNIQUE>>
+    phone : VARCHAR(15)
+    * password_hash : VARCHAR(255)
+    id_card_number : VARCHAR(20) <<UNIQUE>>
+    id_card_front_url : VARCHAR(500)
+    id_card_back_url : VARCHAR(500)
+    avatar_url : VARCHAR(500)
+    * role : ENUM('admin','landlord','tenant')
+    * is_verified : BOOLEAN
+    * is_active : BOOLEAN
+    * created_at : TIMESTAMP
+    * updated_at : TIMESTAMP
+}
+
+entity "properties" as properties {
+    * **id** : INT <<PK>>
+    --
+    * owner_id : INT <<FK>>
+    * name : VARCHAR(200)
+    * address : VARCHAR(500)
+    * city : VARCHAR(100)
+    * district : VARCHAR(100)
+    ward : VARCHAR(100)
+    description : TEXT
+    * property_type : ENUM('apartment','house','boarding_house')
+    * total_rooms : INT
+    latitude : DECIMAL(10,8)
+    longitude : DECIMAL(11,8)
+    * created_at : TIMESTAMP
+    * updated_at : TIMESTAMP
+}
+
+entity "property_images" as property_images {
+    * **id** : INT <<PK>>
+    --
+    * property_id : INT <<FK>>
+    * image_url : VARCHAR(500)
+    * is_primary : BOOLEAN
+    * created_at : TIMESTAMP
+}
+
+entity "rooms" as rooms {
+    * **id** : INT <<PK>>
+    --
+    * property_id : INT <<FK>>
+    * room_number : VARCHAR(20)
+    * floor : INT
+    * area : DECIMAL(6,2)
+    * price : DECIMAL(12,2)
+    * deposit : DECIMAL(12,2)
+    * status : ENUM('available','occupied','maintenance')
+    description : TEXT
+    amenities : JSON
+    * max_occupants : INT
+    * created_at : TIMESTAMP
+    * updated_at : TIMESTAMP
+    ..
+    <<UK>> property_id + room_number
+}
+
+entity "room_images" as room_images {
+    * **id** : INT <<PK>>
+    --
+    * room_id : INT <<FK>>
+    * image_url : VARCHAR(500)
+    * is_primary : BOOLEAN
+    * created_at : TIMESTAMP
+}
+
+entity "rental_contracts" as rental_contracts {
+    * **id** : INT <<PK>>
+    --
+    * room_id : INT <<FK>>
+    * tenant_id : INT <<FK>>
+    * landlord_id : INT <<FK>>
+    * start_date : DATE
+    * end_date : DATE
+    * monthly_rent : DECIMAL(12,2)
+    * deposit_amount : DECIMAL(12,2)
+    * payment_due_day : TINYINT
+    contract_terms : TEXT
+    * status : ENUM('pending','active','expired','terminated')
+    blockchain_tx_hash : VARCHAR(66)
+    smart_contract_address : VARCHAR(42)
+    signed_at : TIMESTAMP
+    * created_at : TIMESTAMP
+    * updated_at : TIMESTAMP
+    ..
+    <<CHECK>> end_date > start_date
+    <<CHECK>> payment_due_day BETWEEN 1 AND 28
+}
+
+entity "services" as services {
+    * **id** : INT <<PK>>
+    --
+    * property_id : INT <<FK>>
+    * service_name : VARCHAR(100)
+    * unit_price : DECIMAL(10,2)
+    * unit : VARCHAR(20)
+    * is_active : BOOLEAN
+    * created_at : TIMESTAMP
+    * updated_at : TIMESTAMP
+}
+
+entity "service_usage" as service_usage {
+    * **id** : INT <<PK>>
+    --
+    * contract_id : INT <<FK>>
+    * service_id : INT <<FK>>
+    * billing_month : DATE
+    * previous_reading : DECIMAL(10,2)
+    * current_reading : DECIMAL(10,2)
+    * usage_amount : DECIMAL(10,2)
+    * total_cost : DECIMAL(12,2)
+    * created_at : TIMESTAMP
+    ..
+    <<UK>> contract_id + service_id + billing_month
+    <<CHECK>> current_reading >= previous_reading
+}
+
+entity "invoices" as invoices {
+    * **id** : INT <<PK>>
+    --
+    * contract_id : INT <<FK>>
+    * billing_month : DATE
+    * rent_amount : DECIMAL(12,2)
+    * service_total : DECIMAL(12,2)
+    * other_fees : DECIMAL(12,2)
+    * discount : DECIMAL(12,2)
+    * total_amount : DECIMAL(12,2)
+    * status : ENUM('pending','paid','overdue','cancelled')
+    * due_date : DATE
+    note : TEXT
+    * created_at : TIMESTAMP
+    * updated_at : TIMESTAMP
+    ..
+    <<UK>> contract_id + billing_month
+}
+
+entity "payments" as payments {
+    * **id** : INT <<PK>>
+    --
+    * invoice_id : INT <<FK>>
+    * payer_id : INT <<FK>>
+    * amount : DECIMAL(12,2)
+    * payment_method : ENUM('cash','bank_transfer','crypto')
+    blockchain_tx_hash : VARCHAR(66)
+    * status : ENUM('pending','confirmed','failed')
+    paid_at : TIMESTAMP
+    * created_at : TIMESTAMP
+}
+
+entity "maintenance_requests" as maintenance_requests {
+    * **id** : INT <<PK>>
+    --
+    * room_id : INT <<FK>>
+    * tenant_id : INT <<FK>>
+    * title : VARCHAR(200)
+    description : TEXT
+    * category : ENUM('electrical','plumbing','furniture','appliance','other')
+    * priority : ENUM('low','medium','high','urgent')
+    * status : ENUM('pending','in_progress','resolved','rejected')
+    images : JSON
+    resolved_at : TIMESTAMP
+    resolved_note : TEXT
+    * created_at : TIMESTAMP
+    * updated_at : TIMESTAMP
+}
+
+entity "notifications" as notifications {
+    * **id** : INT <<PK>>
+    --
+    * user_id : INT <<FK>>
+    * title : VARCHAR(200)
+    * message : TEXT
+    * type : ENUM('payment','contract','maintenance','system')
+    * is_read : BOOLEAN
+    related_type : VARCHAR(50)
+    related_id : INT
+    * created_at : TIMESTAMP
+}
+
+entity "reviews" as reviews {
+    * **id** : INT <<PK>>
+    --
+    * reviewer_id : INT <<FK>>
+    * contract_id : INT <<FK>>
+    * target_type : ENUM('room','landlord','tenant')
+    * target_id : INT
+    * rating : TINYINT
+    comment : TEXT
+    * created_at : TIMESTAMP
+    * updated_at : TIMESTAMP
+    ..
+    <<UK>> reviewer_id + contract_id + target_type
+    <<CHECK>> rating BETWEEN 1 AND 5
+}
+
+entity "blockchain_transactions" as blockchain_transactions {
+    * **id** : INT <<PK>>
+    --
+    * tx_hash : VARCHAR(66) <<UNIQUE>>
+    * from_address : VARCHAR(42)
+    to_address : VARCHAR(42)
+    contract_address : VARCHAR(42)
+    function_name : VARCHAR(100)
+    value_wei : VARCHAR(78)
+    block_number : BIGINT
+    gas_used : BIGINT
+    * status : ENUM('pending','confirmed','failed')
+    * related_type : ENUM('contract','payment','deposit')
+    * related_id : INT
+    * created_at : TIMESTAMP
+    confirmed_at : TIMESTAMP
+}
+
+' ============ Quan hệ ============
+
+users ||--o{ properties : "sở hữu\n(owner_id)"
+users ||--o{ rental_contracts : "thuê\n(tenant_id)"
+users ||--o{ rental_contracts : "cho thuê\n(landlord_id)"
+users ||--o{ payments : "thanh toán\n(payer_id)"
+users ||--o{ maintenance_requests : "báo sự cố\n(tenant_id)"
+users ||--o{ notifications : "nhận\n(user_id)"
+users ||--o{ reviews : "đánh giá\n(reviewer_id)"
+
+properties ||--o{ property_images : "có ảnh\n(property_id)"
+properties ||--o{ rooms : "chứa phòng\n(property_id)"
+properties ||--o{ services : "cung cấp DV\n(property_id)"
+
+rooms ||--o{ room_images : "có ảnh\n(room_id)"
+rooms ||--o{ rental_contracts : "được thuê\n(room_id)"
+rooms ||--o{ maintenance_requests : "có sự cố\n(room_id)"
+
+rental_contracts ||--o{ service_usage : "sử dụng DV\n(contract_id)"
+rental_contracts ||--o{ invoices : "sinh hóa đơn\n(contract_id)"
+rental_contracts ||--o{ reviews : "được đánh giá\n(contract_id)"
+
+services ||--o{ service_usage : "ghi nhận\n(service_id)"
+
+invoices ||--o{ payments : "thanh toán\n(invoice_id)"
+
+@enduml
