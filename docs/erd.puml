@@ -8,253 +8,218 @@ skinparam entity {
 }
 skinparam ArrowColor #A80036
 
-title Sơ đồ quan hệ (ERD) - dApp Quản Lý Thuê Nhà
+title Sơ đồ quan hệ (ERD) - dApp Quản Lý Thuê Nhà\n(PostgreSQL - Tên cột tiếng Việt)
 
-entity "users" as users {
-    * **id** : INT <<PK>>
+entity "nguoi_dung" as nguoi_dung {
+    * **ma_nguoi_dung** : SERIAL <<PK>>
     --
-    wallet_address : VARCHAR(42) <<UNIQUE>>
-    * full_name : VARCHAR(100)
+    dia_chi_vi : VARCHAR(42) <<UNIQUE>>
+    * ho_ten : VARCHAR(100)
     * email : VARCHAR(100) <<UNIQUE>>
-    phone : VARCHAR(15)
-    * password_hash : VARCHAR(255)
-    id_card_number : VARCHAR(20) <<UNIQUE>>
-    id_card_front_url : VARCHAR(500)
-    id_card_back_url : VARCHAR(500)
-    avatar_url : VARCHAR(500)
-    * role : ENUM('admin','landlord','tenant')
-    * is_verified : BOOLEAN
-    * is_active : BOOLEAN
-    * created_at : TIMESTAMP
-    * updated_at : TIMESTAMP
-}
-
-entity "properties" as properties {
-    * **id** : INT <<PK>>
-    --
-    * owner_id : INT <<FK>>
-    * name : VARCHAR(200)
-    * address : VARCHAR(500)
-    * city : VARCHAR(100)
-    * district : VARCHAR(100)
-    ward : VARCHAR(100)
-    description : TEXT
-    * property_type : ENUM('apartment','house','boarding_house')
-    * total_rooms : INT
-    latitude : DECIMAL(10,8)
-    longitude : DECIMAL(11,8)
-    * created_at : TIMESTAMP
-    * updated_at : TIMESTAMP
-}
-
-entity "property_images" as property_images {
-    * **id** : INT <<PK>>
-    --
-    * property_id : INT <<FK>>
-    * image_url : VARCHAR(500)
-    * is_primary : BOOLEAN
-    * created_at : TIMESTAMP
-}
-
-entity "rooms" as rooms {
-    * **id** : INT <<PK>>
-    --
-    * property_id : INT <<FK>>
-    * room_number : VARCHAR(20)
-    * floor : INT
-    * area : DECIMAL(6,2)
-    * price : DECIMAL(12,2)
-    * deposit : DECIMAL(12,2)
-    * status : ENUM('available','occupied','maintenance')
-    description : TEXT
-    amenities : JSON
-    * max_occupants : INT
-    * created_at : TIMESTAMP
-    * updated_at : TIMESTAMP
+    so_dien_thoai : VARCHAR(15)
+    * mat_khau_hash : VARCHAR(255)
+    so_cccd : VARCHAR(20) <<UNIQUE>>
+    anh_cccd_mat_truoc : TEXT
+    anh_cccd_mat_sau : TEXT
+    anh_dai_dien : TEXT
+    * vai_tro : VARCHAR(20)
+    * da_xac_thuc : BOOLEAN
+    * dang_hoat_dong : BOOLEAN
+    * ngay_tao : TIMESTAMP
+    * ngay_cap_nhat : TIMESTAMP
     ..
-    <<UK>> property_id + room_number
+    <<CHECK>> vai_tro IN ('admin','chu_nha','nguoi_thue')
 }
 
-entity "room_images" as room_images {
-    * **id** : INT <<PK>>
+entity "bat_dong_san" as bat_dong_san {
+    * **ma_bat_dong_san** : SERIAL <<PK>>
     --
-    * room_id : INT <<FK>>
-    * image_url : VARCHAR(500)
-    * is_primary : BOOLEAN
-    * created_at : TIMESTAMP
-}
-
-entity "rental_contracts" as rental_contracts {
-    * **id** : INT <<PK>>
-    --
-    * room_id : INT <<FK>>
-    * tenant_id : INT <<FK>>
-    * landlord_id : INT <<FK>>
-    * start_date : DATE
-    * end_date : DATE
-    * monthly_rent : DECIMAL(12,2)
-    * deposit_amount : DECIMAL(12,2)
-    * payment_due_day : TINYINT
-    contract_terms : TEXT
-    * status : ENUM('pending','active','expired','terminated')
-    blockchain_tx_hash : VARCHAR(66)
-    smart_contract_address : VARCHAR(42)
-    signed_at : TIMESTAMP
-    * created_at : TIMESTAMP
-    * updated_at : TIMESTAMP
+    * ma_chu_so_huu : INT <<FK>>
+    * ten : VARCHAR(200)
+    * dia_chi : VARCHAR(500)
+    * thanh_pho : VARCHAR(100)
+    * quan_huyen : VARCHAR(100)
+    phuong_xa : VARCHAR(100)
+    mo_ta : TEXT
+    * loai_bat_dong_san : VARCHAR(30)
+    * tong_so_phong : INT
+    vi_do : DECIMAL(10,8)
+    kinh_do : DECIMAL(11,8)
+    * ngay_tao : TIMESTAMP
+    * ngay_cap_nhat : TIMESTAMP
     ..
-    <<CHECK>> end_date > start_date
-    <<CHECK>> payment_due_day BETWEEN 1 AND 28
+    <<CHECK>> loai IN ('chung_cu','nha_o','nha_tro')
 }
 
-entity "services" as services {
-    * **id** : INT <<PK>>
+entity "hinh_anh" as hinh_anh {
+    * **ma_hinh_anh** : SERIAL <<PK>>
     --
-    * property_id : INT <<FK>>
-    * service_name : VARCHAR(100)
-    * unit_price : DECIMAL(10,2)
-    * unit : VARCHAR(20)
-    * is_active : BOOLEAN
-    * created_at : TIMESTAMP
-    * updated_at : TIMESTAMP
-}
-
-entity "service_usage" as service_usage {
-    * **id** : INT <<PK>>
-    --
-    * contract_id : INT <<FK>>
-    * service_id : INT <<FK>>
-    * billing_month : DATE
-    * previous_reading : DECIMAL(10,2)
-    * current_reading : DECIMAL(10,2)
-    * usage_amount : DECIMAL(10,2)
-    * total_cost : DECIMAL(12,2)
-    * created_at : TIMESTAMP
+    * loai_doi_tuong : VARCHAR(20)
+    * ma_doi_tuong : INT
+    * duong_dan_anh : TEXT
+    * la_anh_chinh : BOOLEAN
+    * ngay_tao : TIMESTAMP
     ..
-    <<UK>> contract_id + service_id + billing_month
-    <<CHECK>> current_reading >= previous_reading
+    <<CHECK>> loai_doi_tuong IN ('bat_dong_san','phong')
 }
 
-entity "invoices" as invoices {
-    * **id** : INT <<PK>>
+entity "phong" as phong {
+    * **ma_phong** : SERIAL <<PK>>
     --
-    * contract_id : INT <<FK>>
-    * billing_month : DATE
-    * rent_amount : DECIMAL(12,2)
-    * service_total : DECIMAL(12,2)
-    * other_fees : DECIMAL(12,2)
-    * discount : DECIMAL(12,2)
-    * total_amount : DECIMAL(12,2)
-    * status : ENUM('pending','paid','overdue','cancelled')
-    * due_date : DATE
-    note : TEXT
-    * created_at : TIMESTAMP
-    * updated_at : TIMESTAMP
+    * ma_bat_dong_san : INT <<FK>>
+    * so_phong : VARCHAR(20)
+    * tang : INT
+    * dien_tich : DECIMAL(6,2)
+    * gia_thue : DECIMAL(12,2)
+    * tien_dat_coc : DECIMAL(12,2)
+    * trang_thai : VARCHAR(20)
+    mo_ta : TEXT
+    tien_nghi : JSONB
+    * so_nguoi_toi_da : INT
+    * ngay_tao : TIMESTAMP
+    * ngay_cap_nhat : TIMESTAMP
     ..
-    <<UK>> contract_id + billing_month
+    <<UK>> ma_bat_dong_san + so_phong
+    <<CHECK>> trang_thai IN ('trong','da_thue','bao_tri')
 }
 
-entity "payments" as payments {
-    * **id** : INT <<PK>>
+entity "hop_dong" as hop_dong {
+    * **ma_hop_dong** : SERIAL <<PK>>
     --
-    * invoice_id : INT <<FK>>
-    * payer_id : INT <<FK>>
-    * amount : DECIMAL(12,2)
-    * payment_method : ENUM('cash','bank_transfer','crypto')
-    blockchain_tx_hash : VARCHAR(66)
-    * status : ENUM('pending','confirmed','failed')
-    paid_at : TIMESTAMP
-    * created_at : TIMESTAMP
-}
-
-entity "maintenance_requests" as maintenance_requests {
-    * **id** : INT <<PK>>
-    --
-    * room_id : INT <<FK>>
-    * tenant_id : INT <<FK>>
-    * title : VARCHAR(200)
-    description : TEXT
-    * category : ENUM('electrical','plumbing','furniture','appliance','other')
-    * priority : ENUM('low','medium','high','urgent')
-    * status : ENUM('pending','in_progress','resolved','rejected')
-    images : JSON
-    resolved_at : TIMESTAMP
-    resolved_note : TEXT
-    * created_at : TIMESTAMP
-    * updated_at : TIMESTAMP
-}
-
-entity "notifications" as notifications {
-    * **id** : INT <<PK>>
-    --
-    * user_id : INT <<FK>>
-    * title : VARCHAR(200)
-    * message : TEXT
-    * type : ENUM('payment','contract','maintenance','system')
-    * is_read : BOOLEAN
-    related_type : VARCHAR(50)
-    related_id : INT
-    * created_at : TIMESTAMP
-}
-
-entity "reviews" as reviews {
-    * **id** : INT <<PK>>
-    --
-    * reviewer_id : INT <<FK>>
-    * contract_id : INT <<FK>>
-    * target_type : ENUM('room','landlord','tenant')
-    * target_id : INT
-    * rating : TINYINT
-    comment : TEXT
-    * created_at : TIMESTAMP
-    * updated_at : TIMESTAMP
+    * ma_phong : INT <<FK>>
+    * ma_nguoi_thue : INT <<FK>>
+    * ma_chu_nha : INT <<FK>>
+    * ngay_bat_dau : DATE
+    * ngay_ket_thuc : DATE
+    * tien_thue_hang_thang : DECIMAL(12,2)
+    * tien_dat_coc : DECIMAL(12,2)
+    * ngay_thanh_toan_hang_thang : SMALLINT
+    dieu_khoan : TEXT
+    * trang_thai : VARCHAR(20)
+    ma_giao_dich_blockchain : VARCHAR(66)
+    dia_chi_hop_dong_bc : VARCHAR(42)
+    thoi_gian_ky : TIMESTAMP
+    * ngay_tao : TIMESTAMP
+    * ngay_cap_nhat : TIMESTAMP
     ..
-    <<UK>> reviewer_id + contract_id + target_type
-    <<CHECK>> rating BETWEEN 1 AND 5
+    <<CHECK>> ngay_ket_thuc > ngay_bat_dau
+    <<CHECK>> ngay_tt BETWEEN 1 AND 28
 }
 
-entity "blockchain_transactions" as blockchain_transactions {
-    * **id** : INT <<PK>>
+entity "dich_vu" as dich_vu {
+    * **ma_dich_vu** : SERIAL <<PK>>
     --
-    * tx_hash : VARCHAR(66) <<UNIQUE>>
-    * from_address : VARCHAR(42)
-    to_address : VARCHAR(42)
-    contract_address : VARCHAR(42)
-    function_name : VARCHAR(100)
-    value_wei : VARCHAR(78)
-    block_number : BIGINT
-    gas_used : BIGINT
-    * status : ENUM('pending','confirmed','failed')
-    * related_type : ENUM('contract','payment','deposit')
-    * related_id : INT
-    * created_at : TIMESTAMP
-    confirmed_at : TIMESTAMP
+    * ma_bat_dong_san : INT <<FK>>
+    * ten_dich_vu : VARCHAR(100)
+    * don_gia : DECIMAL(10,2)
+    * don_vi : VARCHAR(20)
+    * dang_hoat_dong : BOOLEAN
+    * ngay_tao : TIMESTAMP
+    * ngay_cap_nhat : TIMESTAMP
+}
+
+entity "su_dung_dich_vu" as su_dung_dich_vu {
+    * **ma_su_dung** : SERIAL <<PK>>
+    --
+    * ma_hop_dong : INT <<FK>>
+    * ma_dich_vu : INT <<FK>>
+    * thang_tinh_tien : DATE
+    * chi_so_cu : DECIMAL(10,2)
+    * chi_so_moi : DECIMAL(10,2)
+    * so_luong_su_dung : DECIMAL(10,2)
+    * thanh_tien : DECIMAL(12,2)
+    * ngay_tao : TIMESTAMP
+    ..
+    <<UK>> ma_hop_dong + ma_dich_vu + thang_tinh_tien
+    <<CHECK>> chi_so_moi >= chi_so_cu
+}
+
+entity "hoa_don" as hoa_don {
+    * **ma_hoa_don** : SERIAL <<PK>>
+    --
+    * ma_hop_dong : INT <<FK>>
+    * thang_tinh_tien : DATE
+    * tien_thue : DECIMAL(12,2)
+    * tong_tien_dich_vu : DECIMAL(12,2)
+    * phi_khac : DECIMAL(12,2)
+    * giam_gia : DECIMAL(12,2)
+    * tong_tien : DECIMAL(12,2)
+    * trang_thai : VARCHAR(20)
+    * han_thanh_toan : DATE
+    ghi_chu : TEXT
+    * ngay_tao : TIMESTAMP
+    * ngay_cap_nhat : TIMESTAMP
+    ..
+    <<UK>> ma_hop_dong + thang_tinh_tien
+}
+
+entity "thanh_toan" as thanh_toan {
+    * **ma_thanh_toan** : SERIAL <<PK>>
+    --
+    * ma_hoa_don : INT <<FK>>
+    * ma_nguoi_thanh_toan : INT <<FK>>
+    * so_tien : DECIMAL(12,2)
+    * phuong_thuc : VARCHAR(20)
+    ma_giao_dich_blockchain : VARCHAR(66)
+    * trang_thai : VARCHAR(20)
+    thoi_gian_thanh_toan : TIMESTAMP
+    * ngay_tao : TIMESTAMP
+    ..
+    <<CHECK>> phuong_thuc IN ('tien_mat','chuyen_khoan','crypto')
+}
+
+entity "yeu_cau_sua_chua" as yeu_cau_sua_chua {
+    * **ma_yeu_cau** : SERIAL <<PK>>
+    --
+    * ma_phong : INT <<FK>>
+    * ma_nguoi_thue : INT <<FK>>
+    * tieu_de : VARCHAR(200)
+    mo_ta : TEXT
+    * danh_muc : VARCHAR(20)
+    * muc_do_uu_tien : VARCHAR(10)
+    * trang_thai : VARCHAR(20)
+    hinh_anh : JSONB
+    thoi_gian_hoan_thanh : TIMESTAMP
+    ghi_chu_hoan_thanh : TEXT
+    * ngay_tao : TIMESTAMP
+    * ngay_cap_nhat : TIMESTAMP
+}
+
+entity "thong_bao" as thong_bao {
+    * **ma_thong_bao** : SERIAL <<PK>>
+    --
+    * ma_nguoi_dung : INT <<FK>>
+    * tieu_de : VARCHAR(200)
+    * noi_dung : TEXT
+    * loai : VARCHAR(20)
+    * da_doc : BOOLEAN
+    loai_lien_quan : VARCHAR(50)
+    ma_lien_quan : INT
+    * ngay_tao : TIMESTAMP
+    ..
+    <<CHECK>> loai IN ('thanh_toan','hop_dong','sua_chua','he_thong')
 }
 
 ' ============ Quan hệ ============
 
-users ||--o{ properties : "sở hữu\n(owner_id)"
-users ||--o{ rental_contracts : "thuê\n(tenant_id)"
-users ||--o{ rental_contracts : "cho thuê\n(landlord_id)"
-users ||--o{ payments : "thanh toán\n(payer_id)"
-users ||--o{ maintenance_requests : "báo sự cố\n(tenant_id)"
-users ||--o{ notifications : "nhận\n(user_id)"
-users ||--o{ reviews : "đánh giá\n(reviewer_id)"
+nguoi_dung ||--o{ bat_dong_san : "sở hữu\n(ma_chu_so_huu)"
+nguoi_dung ||--o{ hop_dong : "thuê\n(ma_nguoi_thue)"
+nguoi_dung ||--o{ hop_dong : "cho thuê\n(ma_chu_nha)"
+nguoi_dung ||--o{ thanh_toan : "thanh toán\n(ma_nguoi_thanh_toan)"
+nguoi_dung ||--o{ yeu_cau_sua_chua : "báo sự cố\n(ma_nguoi_thue)"
+nguoi_dung ||--o{ thong_bao : "nhận\n(ma_nguoi_dung)"
 
-properties ||--o{ property_images : "có ảnh\n(property_id)"
-properties ||--o{ rooms : "chứa phòng\n(property_id)"
-properties ||--o{ services : "cung cấp DV\n(property_id)"
+bat_dong_san ||--o{ phong : "chứa phòng\n(ma_bat_dong_san)"
+bat_dong_san ||--o{ dich_vu : "cung cấp DV\n(ma_bat_dong_san)"
 
-rooms ||--o{ room_images : "có ảnh\n(room_id)"
-rooms ||--o{ rental_contracts : "được thuê\n(room_id)"
-rooms ||--o{ maintenance_requests : "có sự cố\n(room_id)"
+phong ||--o{ hop_dong : "được thuê\n(ma_phong)"
+phong ||--o{ yeu_cau_sua_chua : "có sự cố\n(ma_phong)"
 
-rental_contracts ||--o{ service_usage : "sử dụng DV\n(contract_id)"
-rental_contracts ||--o{ invoices : "sinh hóa đơn\n(contract_id)"
-rental_contracts ||--o{ reviews : "được đánh giá\n(contract_id)"
+hop_dong ||--o{ su_dung_dich_vu : "sử dụng DV\n(ma_hop_dong)"
+hop_dong ||--o{ hoa_don : "sinh hóa đơn\n(ma_hop_dong)"
 
-services ||--o{ service_usage : "ghi nhận\n(service_id)"
+dich_vu ||--o{ su_dung_dich_vu : "ghi nhận\n(ma_dich_vu)"
 
-invoices ||--o{ payments : "thanh toán\n(invoice_id)"
+hoa_don ||--o{ thanh_toan : "thanh toán\n(ma_hoa_don)"
 
 @enduml
