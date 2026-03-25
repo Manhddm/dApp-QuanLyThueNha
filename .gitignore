@@ -1,40 +1,61 @@
-﻿# Node
+# ========================
+# Node & TypeScript
+# ========================
 node_modules/
 dist/
 build/
+.tsbuildinfo
 
-# Logs
+# ========================
+# Logs & Caches
+# ========================
+logs/
 *.log
 npm-debug.log*
 yarn-debug.log*
+yarn-error.log*
 pnpm-debug.log*
+.npm/
 
-# Env
+# ========================
+# Environment
+# ========================
 .env
 .env.*
 !.env.example
 
-# Hardhat
+# ========================
+# Smart Contracts (Hardhat)
+# ========================
 artifacts/
 cache/
 coverage/
+typechain-types/
+typechain/
 
+# ========================
 # Frontend (Vite)
+# ========================
 .vite/
 vite.config.ts.timestamp-*
 
-# OS
+# ========================
+# OS & IDE
+# ========================
 .DS_Store
 Thumbs.db
-
-# IDE
-.vscode/
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
 .idea/
 
-# Misc
+# ========================
+# Misc / Database
+# ========================
 *.tmp
 *.temp
-
-#Readme
-.md 
-!README.md 
+# Nếu bạn dùng folder local nào đó để chứa data database thì bỏ comment dòng dưới
+# pgdata/ 
+# .data/

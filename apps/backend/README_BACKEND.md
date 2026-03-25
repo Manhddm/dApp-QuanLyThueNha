@@ -3,13 +3,13 @@
 ## Mục tiêu
 Backend xử lý:
 - API
-- Database (MySQL)
+- Database (PostgreSQL)
 - Business logic
 - IPFS
 
 ## Tech stack
 - Node.js + Express
-- MySQL
+- PostgreSQL
 
 ## Nhiệm vụ
 - Xây API (houses, users, bookings)
