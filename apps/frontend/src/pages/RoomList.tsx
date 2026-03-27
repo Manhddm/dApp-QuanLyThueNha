@@ -2,22 +2,22 @@ import { Link } from "react-router-dom";
 import { useRooms } from "../hooks/useRooms";
 
 export default function RoomList() {
-    const { 
-        rooms, 
-        filters, 
-        setFilters, 
-        currentPage, 
-        setCurrentPage, 
-        totalPages, 
-        totalItems, 
-        deleteRoom 
+    const {
+        rooms,
+        filters,
+        setFilters,
+        currentPage,
+        setCurrentPage,
+        totalPages,
+        totalItems,
+        deleteRoom
     } = useRooms();
 
     const handleFilterChange = (e) => {
         const { name, value, type, checked } = e.target;
-        setFilters({ 
-            ...filters, 
-            [name]: type === 'checkbox' ? checked : value 
+        setFilters({
+            ...filters,
+            [name]: type === 'checkbox' ? checked : value
         });
         setCurrentPage(1); // Reset page on filter change
     };
@@ -51,21 +51,21 @@ export default function RoomList() {
                         <h1 className="font-['Space_Grotesk'] text-5xl font-bold tracking-tighter text-[#e9e6f7]">Khám Phá Không Gian Sống</h1>
                         {/* Fake Dashboard Add Button For Demo */}
                         <button onClick={() => alert("Chức năng thêm phòng sẽ được tích hợp trong CMS")} className="bg-[#a8a4ff]/20 text-[#a8a4ff] px-4 py-2 border border-[#a8a4ff]/30 rounded-lg hover:bg-[#a8a4ff]/30 flex gap-2">
-                           <span className="material-symbols-outlined text-sm">add</span> Thêm mới (CRUD Demo)
+                            <span className="material-symbols-outlined text-sm">+</span> Thêm mới (CRUD Demo)
                         </button>
                     </div>
                     <div className="bg-[#12121e] p-6 rounded-xl border border-white/5 grid grid-cols-1 md:grid-cols-4 gap-6 items-end relative z-10">
                         <div className="space-y-2">
                             <label className="block text-xs font-medium text-[#aba9b9] uppercase tracking-widest">Vị trí, từ khóa</label>
                             <div className="relative">
-                                <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[#aba9b9] text-sm">search</span>
-                                <input 
+                                {/* <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[#aba9b9] text-sm">search</span> */}
+                                <input
                                     name="location"
                                     value={filters.location}
                                     onChange={handleFilterChange}
-                                    className="w-full bg-[#242434] border-none rounded-lg py-3 pl-10 pr-4 text-sm focus:ring-1 focus:ring-[#a8a4ff]/50 placeholder:text-[#aba9b9]/40 outline-none" 
-                                    placeholder="Tìm theo khu vực, tên..." 
-                                    type="text" 
+                                    className="w-full bg-[#242434] border-none rounded-lg py-3 pl-10 pr-4 text-sm focus:ring-1 focus:ring-[#a8a4ff]/50 placeholder:text-[#aba9b9]/40 outline-none"
+                                    placeholder="Tìm theo khu vực, tên..."
+                                    type="text"
                                 />
                             </div>
                         </div>
@@ -74,23 +74,23 @@ export default function RoomList() {
                                 <label className="block text-xs font-medium text-[#aba9b9] uppercase tracking-widest">Giá Tối Đa (ETH)</label>
                                 <span className="text-xs font-mono text-[#a8a4ff]">{filters.priceMax} ETH</span>
                             </div>
-                            <input 
+                            <input
                                 name="priceMax"
                                 value={filters.priceMax}
                                 onChange={handleFilterChange}
-                                className="w-full h-1 bg-[#242434] rounded-lg appearance-none cursor-pointer accent-[#a8a4ff]" 
-                                max="5" min="0.1" step="0.1" type="range" 
+                                className="w-full h-1 bg-[#242434] rounded-lg appearance-none cursor-pointer accent-[#a8a4ff]"
+                                max="5" min="0.1" step="0.1" type="range"
                             />
                         </div>
                         <div className="flex items-center justify-between bg-[#242434] p-3 rounded-lg h-[46px]">
                             <span className="text-xs font-medium text-[#aba9b9] uppercase tracking-widest">Phòng trống</span>
                             <label className="relative inline-flex items-center cursor-pointer">
-                                <input 
+                                <input
                                     name="isAvailable"
                                     checked={filters.isAvailable}
                                     onChange={handleFilterChange}
-                                    className="sr-only peer" 
-                                    type="checkbox" 
+                                    className="sr-only peer"
+                                    type="checkbox"
                                 />
                                 <div className="w-9 h-5 bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#a8a4ff]"></div>
                             </label>
@@ -103,18 +103,18 @@ export default function RoomList() {
 
                 {/* Room Listing Grid */}
                 {rooms.length === 0 ? (
-                     <div className="text-center py-20 bg-[#12121e] rounded-xl border border-white/5">
+                    <div className="text-center py-20 bg-[#12121e] rounded-xl border border-white/5">
                         <span className="material-symbols-outlined text-6xl text-white/10 mb-4">search_off</span>
                         <h2 className="text-xl font-bold text-[#aba9b9]">Không tìm thấy phòng phù hợp</h2>
                         <p className="text-sm text-[#aba9b9]/60">Thử điều chỉnh lại bộ lọc xem sao!</p>
-                     </div>
+                    </div>
                 ) : (
                     <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 relative z-0">
                         {rooms.map((room) => (
                             <Link key={room.id} to={`/rooms/${room.id}`} className="bg-white/[0.03] backdrop-blur-md border border-white/5 hover:bg-white/[0.06] hover:-translate-y-1 rounded-xl overflow-hidden transition-all duration-300 flex flex-col group block relative">
                                 <div className="relative h-64 overflow-hidden">
                                     <img className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" alt={room.title} src={room.image} />
-                                    {room.status === "Available" ? (
+                                    {room.isAvailable ? (
                                         <div className="absolute top-4 left-4 bg-[#22C55E]/20 backdrop-blur-md border border-[#22C55E]/30 text-[#22C55E] px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest flex items-center gap-1.5 shadow-lg">
                                             <span className="w-1.5 h-1.5 rounded-full bg-[#22C55E] animate-pulse"></span>
                                             Available
@@ -129,8 +129,8 @@ export default function RoomList() {
                                         ID: {room.id}
                                     </div>
                                     {/* Delete Button OVERRIDING nav logic (Demo CRUD) */}
-                                    <button 
-                                        onClick={(e) => { e.preventDefault(); deleteRoom(room.id); }} 
+                                    <button
+                                        onClick={(e) => { e.preventDefault(); deleteRoom(room.id); }}
                                         className="absolute top-4 right-4 bg-red-500/80 backdrop-blur-md text-white w-8 h-8 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:scale-110 shadow-lg"
                                         title="Delete Room"
                                     >
@@ -155,8 +155,8 @@ export default function RoomList() {
                                             <p className="font-mono text-sm">{room.deposit} ETH</p>
                                         </div>
                                         <div className="text-right">
-                                            <p className="text-[10px] text-[#aba9b9] uppercase tracking-wider mb-1">Contract</p>
-                                            <p className="font-mono text-sm text-[#a8a4ff]/80">{room.contract}</p>
+                                            <p className="text-[10px] text-[#aba9b9] uppercase tracking-wider mb-1">Owner</p>
+                                            <p className="font-mono text-sm text-[#a8a4ff]/80 truncate">{room.owner.slice(0, 6)}...{room.owner.slice(-4)}</p>
                                         </div>
                                     </div>
                                     <button className="w-full border border-[#474754] group-hover:border-[#a8a4ff]/50 text-[#e9e6f7] py-3 rounded-lg text-xs font-bold uppercase tracking-widest transition-all group-hover:bg-[#a8a4ff]/5 pointer-events-none">
@@ -171,16 +171,16 @@ export default function RoomList() {
                 {/* Pagination */}
                 {totalPages > 1 && (
                     <footer className="mt-20 flex justify-center items-center gap-2 relative z-10">
-                        <button 
+                        <button
                             disabled={currentPage === 1}
                             onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
                             className="w-10 h-10 flex items-center justify-center rounded-lg border border-white/5 text-[#aba9b9] hover:bg-white/5 transition-colors disabled:opacity-30"
                         >
                             <span className="material-symbols-outlined">chevron_left</span>
                         </button>
-                        
+
                         {[...Array(totalPages)].map((_, i) => (
-                            <button 
+                            <button
                                 key={i}
                                 onClick={() => setCurrentPage(i + 1)}
                                 className={`w-10 h-10 flex items-center justify-center rounded-lg font-bold transition-colors ${currentPage === i + 1 ? "bg-[#a8a4ff] text-[#0d0d18]" : "border border-white/5 text-[#aba9b9] hover:bg-white/5"}`}
@@ -189,7 +189,7 @@ export default function RoomList() {
                             </button>
                         ))}
 
-                        <button 
+                        <button
                             disabled={currentPage === totalPages}
                             onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
                             className="w-10 h-10 flex items-center justify-center rounded-lg border border-white/5 text-[#aba9b9] hover:bg-white/5 transition-colors disabled:opacity-30"

@@ -1,40 +1,26 @@
-﻿import { Button, Card, Typography } from "antd";
-import { useAccount, useConnect, useDisconnect } from "wagmi";
+﻿import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import Home from "./pages/Home";
+import RoomList from "./pages/RoomList";
+import RoomDetail from "./pages/RoomDetail";
+import Contracts from "./pages/Contracts";
+import Dashboard from "./pages/Dashboard";
+import Payment from "./pages/Payment";
+import AccessDenied from "./pages/AccessDenied";
 
-const { Title, Paragraph } = Typography;
-
-export default function App() {
-  const { address, isConnected } = useAccount();
-  const { connect, connectors } = useConnect();
-  const { disconnect } = useDisconnect();
-
+function App() {
   return (
-    <div style={{ minHeight: "100vh", padding: 24, background: "#f5f5f5" }}>
-      <Card style={{ maxWidth: 720, margin: "0 auto" }}>
-        <Title level={2}>QuanLyThueNha</Title>
-        <Paragraph>
-          Frontend da san sang voi React, Vite, TypeScript, Wagmi, Ethers,
-          Ant Design va Tailwind.
-        </Paragraph>
-
-        {isConnected ? (
-          <>
-            <Paragraph>
-              Wallet connected: <strong>{address}</strong>
-            </Paragraph>
-            <Button danger onClick={() => disconnect()}>
-              Disconnect
-            </Button>
-          </>
-        ) : (
-          <Button
-            type="primary"
-            onClick={() => connect({ connector: connectors[0] })}
-          >
-            Connect Wallet
-          </Button>
-        )}
-      </Card>
-    </div>
+    <Router>
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/rooms" element={<RoomList />} />
+        <Route path="/rooms/:id" element={<RoomDetail />} />
+        <Route path="/contracts" element={<Contracts />} />
+        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/payment" element={<Payment />} />
+        <Route path="/access-denied" element={<AccessDenied />} />
+      </Routes>
+    </Router>
   );
 }
+
+export default App;

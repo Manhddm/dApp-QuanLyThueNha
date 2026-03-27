@@ -12,7 +12,7 @@ export default function Home() {
                     </div>
                     <div className="hidden md:flex items-center gap-8 font-['Space_Grotesk'] tracking-tight">
                         <Link to="/" className="text-[#a8a4ff] border-b-2 border-[#a8a4ff] pb-1">Home</Link>
-                        <Link to="/rooms" className="text-[#e9e6f7]/60 hover:text-[#e9e6f7] transition-colors">Danh sách phòng</Link>
+                        <Link to="/rooms" className="text-[#e9e6f7]/60 hover:text-[#e9e6f7] transition-colors">Danh sách nhà</Link>
                         <Link to="/contracts" className="text-[#e9e6f7]/60 hover:text-[#e9e6f7] transition-colors">Hợp đồng</Link>
                         <Link to="/dashboard" className="text-[#e9e6f7]/60 hover:text-[#e9e6f7] transition-colors">Dashboard</Link>
                     </div>
@@ -40,12 +40,12 @@ export default function Home() {
                             <div className="flex flex-wrap gap-4">
                                 <Link to="/rooms">
                                     <button className="bg-gradient-to-r from-[#a8a4ff] to-[#675df9] text-black px-8 py-4 rounded-lg font-bold uppercase tracking-widest hover:shadow-[0_0_30px_rgba(168,164,255,0.4)] transition-all">
-                                        Tìm phòng trọ
+                                        Tìm nhà cho thuê
                                     </button>
                                 </Link>
                                 <Link to="/rooms">
                                     <button className="bg-transparent border border-[#474754] hover:bg-white/5 text-[#e9e6f7] px-8 py-4 rounded-lg font-bold uppercase tracking-widest transition-all">
-                                        Đăng phòng
+                                        Đăng nhà mới
                                     </button>
                                 </Link>
                             </div>
@@ -91,9 +91,9 @@ export default function Home() {
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                             {/* Feature 1 */}
                             <div className="bg-white/5 backdrop-blur-xl border border-white/10 p-10 rounded-2xl group hover:bg-white/[0.08] transition-all duration-500 hover:-translate-y-2">
-                                <div className="w-16 h-16 bg-[#a8a4ff]/10 rounded-xl flex items-center justify-center mb-8 group-hover:bg-[#a8a4ff]/20 transition-colors">
-                                    <span className="material-symbols-outlined text-[#a8a4ff] text-4xl">description</span>
-                                </div>
+                                {/* <div className="w-16 h-16 bg-[#a8a4ff]/10 rounded-xl flex items-center justify-center mb-8 group-hover:bg-[#a8a4ff]/20 transition-colors"> */}
+                                {/* <span className="material-symbols-outlined text-[#a8a4ff] text-4xl">description</span> */}
+                                {/* </div> */}
                                 <h3 className="text-2xl font-['Space_Grotesk'] font-bold mb-4 text-[#e9e6f7]">Hợp đồng số</h3>
                                 <p className="text-[#aba9b9] leading-relaxed">
                                     Smart contract tự động thực thi điều khoản. Không cần trung gian, không cần tin tưởng mù quáng. Mọi cam kết được mã hóa vĩnh viễn.
@@ -101,9 +101,9 @@ export default function Home() {
                             </div>
                             {/* Feature 2 */}
                             <div className="bg-white/5 backdrop-blur-xl border border-white/10 p-10 rounded-2xl group hover:bg-white/[0.08] transition-all duration-500 hover:-translate-y-2">
-                                <div className="w-16 h-16 bg-[#aa8ffd]/10 rounded-xl flex items-center justify-center mb-8 group-hover:bg-[#aa8ffd]/20 transition-colors">
+                                {/* <div className="w-16 h-16 bg-[#aa8ffd]/10 rounded-xl flex items-center justify-center mb-8 group-hover:bg-[#aa8ffd]/20 transition-colors">
                                     <span className="material-symbols-outlined text-[#aa8ffd] text-4xl">account_balance_wallet</span>
-                                </div>
+                                </div> */}
                                 <h3 className="text-2xl font-['Space_Grotesk'] font-bold mb-4 text-[#e9e6f7]">Thanh toán tự động</h3>
                                 <p className="text-[#aba9b9] leading-relaxed">
                                     Nhận và trả tiền bằng ETH một cách an toàn. Hệ thống tự động khấu trừ và chuyển khoản đúng hạn, giảm thiểu rủi ro chậm trễ.
@@ -111,9 +111,9 @@ export default function Home() {
                             </div>
                             {/* Feature 3 */}
                             <div className="bg-white/5 backdrop-blur-xl border border-white/10 p-10 rounded-2xl group hover:bg-white/[0.08] transition-all duration-500 hover:-translate-y-2">
-                                <div className="w-16 h-16 bg-[#ff9dd0]/10 rounded-xl flex items-center justify-center mb-8 group-hover:bg-[#ff9dd0]/20 transition-colors">
+                                {/* <div className="w-16 h-16 bg-[#ff9dd0]/10 rounded-xl flex items-center justify-center mb-8 group-hover:bg-[#ff9dd0]/20 transition-colors">
                                     <span className="material-symbols-outlined text-[#ff9dd0] text-4xl">shield</span>
-                                </div>
+                                </div> */}
                                 <h3 className="text-2xl font-['Space_Grotesk'] font-bold mb-4 text-[#e9e6f7]">Đặt cọc an toàn</h3>
                                 <p className="text-[#aba9b9] leading-relaxed">
                                     Trustless deposit management. Tiền cọc được giữ bởi Smart Contract và chỉ được hoàn trả khi các điều kiện thanh lý được thỏa mãn.
@@ -143,9 +143,9 @@ export default function Home() {
                                 <h5 className="text-xl font-['Space_Grotesk'] font-bold mb-2">Bảo mật đa tầng</h5>
                                 <p className="text-[#aba9b9] text-sm">Xác thực danh tính phi tập trung (DID) đảm bảo quyền riêng tư và an toàn cho người dùng.</p>
                             </div>
-                            <div className="w-24 h-24 bg-[#0d0d18] rounded-full flex items-center justify-center border border-white/5">
+                            {/* <div className="w-24 h-24 bg-[#0d0d18] rounded-full flex items-center justify-center border border-white/5">
                                 <span className="material-symbols-outlined text-[#a8a4ff] text-4xl">security</span>
-                            </div>
+                            </div> */}
                         </div>
                         <div className="md:col-span-1 bg-gradient-to-br from-[#a8a4ff]/20 to-[#aa8ffd]/20 rounded-2xl p-8 border border-white/5">
                             <h5 className="text-3xl font-['Space_Grotesk'] font-bold mb-2">0.1%</h5>
@@ -155,7 +155,7 @@ export default function Home() {
                             <p className="text-[#aba9b9] italic text-sm">"QuanLyThueNha đã thay đổi hoàn toàn cách tôi quản lý căn hộ cho thuê của mình."</p>
                             <div className="flex items-center gap-3 mt-4">
                                 <div className="w-8 h-8 rounded-full bg-[#a8a4ff]/40"></div>
-                                <span className="text-xs font-bold">Quang Tran, Host</span>
+                                <span className="text-xs font-bold">Nguyen Hieu, Host</span>
                             </div>
                         </div>
                     </div>

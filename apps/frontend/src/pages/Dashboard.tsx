@@ -1,6 +1,4 @@
 import { Link } from "react-router-dom";
-import { useState } from "react";
-import { useRooms } from "../hooks/useRooms";
 
 const stats = [
     {
@@ -72,25 +70,6 @@ const tenants = [
 ];
 
 export default function Dashboard() {
-    const { addRoom } = useRooms();
-    const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-    const [formData, setFormData] = useState({
-        title: "", price: "", deposit: "", location: "", image: "", status: "Available", description: "Căn hộ hiện đại vừa được thêm mới trên hệ thống Blockchain."
-    });
-
-    const handleAddSubmit = (e) => {
-        e.preventDefault();
-        addRoom({
-            ...formData,
-            price: Number(formData.price),
-            deposit: Number(formData.deposit),
-            amenities: ["wifi", "ac_unit"], 
-        });
-        setIsAddModalOpen(false);
-        alert("Đăng phòng thành công! Bạn có thể xem tại danh sách phòng.");
-        setFormData({ title: "", price: "", deposit: "", location: "", image: "", status: "Available", description: "Căn hộ hiện đại vừa được thêm mới trên hệ thống Blockchain." });
-    };
-
     return (
         <div className="bg-[#0d0d18] text-[#e9e6f7] font-['Inter'] min-h-screen flex flex-col">
 
@@ -127,12 +106,12 @@ export default function Dashboard() {
                         <p className="text-[#aba9b9] max-w-lg">Quản lý tài sản số và dòng tiền thuê từ các hợp đồng thông minh của bạn.</p>
                     </div>
                     <div className="flex gap-3">
-                        <button onClick={() => setIsAddModalOpen(true)} className="flex items-center gap-2 bg-[#242434] text-[#a8a4ff] border border-[#a8a4ff]/20 hover:bg-[#a8a4ff]/10 transition-all px-5 py-3 rounded-xl font-medium">
-                            <span className="material-symbols-outlined">add_home</span>
+                        <button className="flex items-center gap-2 bg-[#242434] text-[#a8a4ff] border border-[#a8a4ff]/20 hover:bg-[#a8a4ff]/10 transition-all px-5 py-3 rounded-xl font-medium">
+                            <span className="material-symbols-outlined">+</span>
                             Đăng phòng mới
                         </button>
                         <button className="flex items-center gap-2 bg-[#242434] text-[#aa8ffd] border border-[#aa8ffd]/20 hover:bg-[#aa8ffd]/10 transition-all px-5 py-3 rounded-xl font-medium">
-                            <span className="material-symbols-outlined">account_balance_wallet</span>
+                            <span className="material-symbols-outlined"></span>
                             Rút tiền cọc
                         </button>
                     </div>
@@ -275,45 +254,6 @@ export default function Dashboard() {
                         </button>
                     </div>
                 </div>
-
-                {/* Add Room Modal */}
-                {isAddModalOpen && (
-                    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-                        <div className="bg-[#12121e] border border-white/10 rounded-3xl p-8 max-w-xl w-full shadow-2xl relative">
-                            <button onClick={() => setIsAddModalOpen(false)} className="absolute top-6 right-6 text-[#aba9b9] hover:text-white transition-colors">
-                                <span className="material-symbols-outlined">close</span>
-                            </button>
-                            <h2 className="font-['Space_Grotesk'] text-3xl font-bold mb-6 text-[#e9e6f7]">Đăng phòng mới</h2>
-                            <form onSubmit={handleAddSubmit} className="space-y-4">
-                                <div>
-                                    <label className="block text-xs text-[#aba9b9] uppercase tracking-wider mb-2 font-medium">Tên phòng / Căn hộ</label>
-                                    <input required type="text" value={formData.title} onChange={e => setFormData({...formData, title: e.target.value})} className="w-full bg-[#242434] text-[#e9e6f7] border border-white/5 rounded-xl px-4 py-3 text-sm outline-none focus:border-[#a8a4ff]/50 transition-colors" placeholder="VD: Studio 102 Cao Cấp" />
-                                </div>
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <label className="block text-xs text-[#aba9b9] uppercase tracking-wider mb-2 font-medium">Giá Thuê (ETH)</label>
-                                        <input required type="number" step="0.01" value={formData.price} onChange={e => setFormData({...formData, price: e.target.value})} className="w-full bg-[#242434] text-[#e9e6f7] border border-white/5 rounded-xl px-4 py-3 text-sm outline-none focus:border-[#a8a4ff]/50 transition-colors" placeholder="0.5" />
-                                    </div>
-                                    <div>
-                                        <label className="block text-xs text-[#aba9b9] uppercase tracking-wider mb-2 font-medium">Cọc (ETH)</label>
-                                        <input required type="number" step="0.01" value={formData.deposit} onChange={e => setFormData({...formData, deposit: e.target.value})} className="w-full bg-[#242434] text-[#e9e6f7] border border-white/5 rounded-xl px-4 py-3 text-sm outline-none focus:border-[#a8a4ff]/50 transition-colors" placeholder="1.0" />
-                                    </div>
-                                </div>
-                                <div>
-                                    <label className="block text-xs text-[#aba9b9] uppercase tracking-wider mb-2 font-medium">Địa chỉ</label>
-                                    <input required type="text" value={formData.location} onChange={e => setFormData({...formData, location: e.target.value})} className="w-full bg-[#242434] text-[#e9e6f7] border border-white/5 rounded-xl px-4 py-3 text-sm outline-none focus:border-[#a8a4ff]/50 transition-colors" placeholder="VD: Vinhomes Central Park, HCMM" />
-                                </div>
-                                <div>
-                                    <label className="block text-xs text-[#aba9b9] uppercase tracking-wider mb-2 font-medium">Link Ảnh Bìa</label>
-                                    <input required type="url" value={formData.image} onChange={e => setFormData({...formData, image: e.target.value})} className="w-full bg-[#242434] text-[#e9e6f7] border border-white/5 rounded-xl px-4 py-3 text-sm outline-none focus:border-[#a8a4ff]/50 transition-colors" placeholder="https://..." />
-                                </div>
-                                <button type="submit" className="w-full bg-gradient-to-r from-[#a8a4ff] to-[#675df9] text-black font-bold py-4 rounded-xl mt-6 hover:shadow-[0_0_20px_rgba(168,164,255,0.4)] transition-all active:scale-[0.98] uppercase tracking-widest text-sm">
-                                    Thêm Vào Hệ Thống Blockchain
-                                </button>
-                            </form>
-                        </div>
-                    </div>
-                )}
             </main>
 
             {/* Footer */}
