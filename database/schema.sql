@@ -34,7 +34,7 @@ CREATE INDEX idx_nguoi_dung_vaitro ON nguoi_dung (vai_tro);
 -- ============================================================
 CREATE TABLE bat_dong_san (
     ma_bat_dong_san     SERIAL          PRIMARY KEY,
-    ma_chu_so_huu      INT             NOT NULL,
+    ma_chu_so_huu       INT             NOT NULL,
     ten                 VARCHAR(200)    NOT NULL,
     dia_chi             VARCHAR(500)    NOT NULL,
     thanh_pho           VARCHAR(100)    NOT NULL,
@@ -43,7 +43,13 @@ CREATE TABLE bat_dong_san (
     mo_ta               TEXT            NULL,
     loai_bat_dong_san   VARCHAR(30)     NOT NULL DEFAULT 'nha_tro'
                             CHECK (loai_bat_dong_san IN ('chung_cu', 'nha_o', 'nha_tro')),
-    tong_so_phong       INT             NOT NULL DEFAULT 0,
+    dien_tich           DECIMAL(6, 2)   NOT NULL DEFAULT 0,
+    gia_thue            DECIMAL(12, 2)  NOT NULL DEFAULT 0,
+    tien_dat_coc        DECIMAL(12, 2)  NOT NULL DEFAULT 0,
+    trang_thai          VARCHAR(20)     NOT NULL DEFAULT 'trong'
+                            CHECK (trang_thai IN ('trong', 'da_thue', 'bao_tri')),
+    tien_nghi           JSONB           NULL,
+    so_nguoi_toi_da     INT             NOT NULL DEFAULT 2,
     vi_do               DECIMAL(10, 8)  NULL,
     kinh_do             DECIMAL(11, 8)  NULL,
     ngay_tao            TIMESTAMP       NOT NULL DEFAULT NOW(),
@@ -54,62 +60,34 @@ CREATE TABLE bat_dong_san (
         ON UPDATE CASCADE ON DELETE RESTRICT
 );
 
-CREATE INDEX idx_bds_chu_so_huu ON bat_dong_san (ma_chu_so_huu);
-CREATE INDEX idx_bds_dia_diem   ON bat_dong_san (thanh_pho, quan_huyen);
+CREATE INDEX idx_bds_chu_so_huu_trangthai ON bat_dong_san (ma_chu_so_huu, trang_thai);
+CREATE INDEX idx_bds_dia_diem             ON bat_dong_san (thanh_pho, quan_huyen);
 
 
 -- ============================================================
--- 3. hinh_anh - Ảnh (bất động sản hoặc phòng)
+-- 3. hinh_anh - Ảnh bất động sản
 -- ============================================================
 CREATE TABLE hinh_anh (
     ma_hinh_anh         SERIAL          PRIMARY KEY,
-    -- 'bat_dong_san' hoặc 'phong'
-    loai_doi_tuong      VARCHAR(20)     NOT NULL
-                            CHECK (loai_doi_tuong IN ('bat_dong_san', 'phong')),
-    ma_doi_tuong        INT             NOT NULL,
+    ma_bat_dong_san     INT             NOT NULL,
     duong_dan_anh       TEXT            NOT NULL,
     la_anh_chinh        BOOLEAN         NOT NULL DEFAULT false,
-    ngay_tao            TIMESTAMP       NOT NULL DEFAULT NOW()
-);
-
-CREATE INDEX idx_hinh_anh_doi_tuong ON hinh_anh (loai_doi_tuong, ma_doi_tuong);
-
-
--- ============================================================
--- 4. phong - Phòng cho thuê
--- ============================================================
-CREATE TABLE phong (
-    ma_phong            SERIAL          PRIMARY KEY,
-    ma_bat_dong_san     INT             NOT NULL,
-    so_phong            VARCHAR(20)     NOT NULL,
-    tang                INT             NOT NULL DEFAULT 1,
-    dien_tich           DECIMAL(6, 2)   NOT NULL,
-    gia_thue            DECIMAL(12, 2)  NOT NULL,
-    tien_dat_coc        DECIMAL(12, 2)  NOT NULL DEFAULT 0,
-    trang_thai          VARCHAR(20)     NOT NULL DEFAULT 'trong'
-                            CHECK (trang_thai IN ('trong', 'da_thue', 'bao_tri')),
-    mo_ta               TEXT            NULL,
-    tien_nghi           JSONB           NULL,
-    so_nguoi_toi_da     INT             NOT NULL DEFAULT 2,
     ngay_tao            TIMESTAMP       NOT NULL DEFAULT NOW(),
-    ngay_cap_nhat       TIMESTAMP       NOT NULL DEFAULT NOW(),
 
-    UNIQUE (ma_bat_dong_san, so_phong),
-
-    CONSTRAINT fk_phong_bds
+    CONSTRAINT fk_anh_bds
         FOREIGN KEY (ma_bat_dong_san) REFERENCES bat_dong_san (ma_bat_dong_san)
-        ON UPDATE CASCADE ON DELETE RESTRICT
+        ON UPDATE CASCADE ON DELETE CASCADE
 );
 
-CREATE INDEX idx_phong_bds_trangthai ON phong (ma_bat_dong_san, trang_thai);
+CREATE INDEX idx_hinh_anh_bds ON hinh_anh (ma_bat_dong_san);
 
 
 -- ============================================================
--- 5. hop_dong - Hợp đồng thuê nhà
+-- 4. hop_dong - Hợp đồng thuê nhà
 -- ============================================================
 CREATE TABLE hop_dong (
     ma_hop_dong             SERIAL          PRIMARY KEY,
-    ma_phong                INT             NOT NULL,
+    ma_bat_dong_san         INT             NOT NULL,
     ma_nguoi_thue           INT             NOT NULL,
     ma_chu_nha              INT             NOT NULL,
     ngay_bat_dau            DATE            NOT NULL,
@@ -129,8 +107,8 @@ CREATE TABLE hop_dong (
 
     CONSTRAINT chk_hop_dong_ngay CHECK (ngay_ket_thuc > ngay_bat_dau),
 
-    CONSTRAINT fk_hop_dong_phong
-        FOREIGN KEY (ma_phong) REFERENCES phong (ma_phong)
+    CONSTRAINT fk_hop_dong_bds
+        FOREIGN KEY (ma_bat_dong_san) REFERENCES bat_dong_san (ma_bat_dong_san)
         ON UPDATE CASCADE ON DELETE RESTRICT,
     CONSTRAINT fk_hop_dong_nguoi_thue
         FOREIGN KEY (ma_nguoi_thue) REFERENCES nguoi_dung (ma_nguoi_dung)
@@ -141,14 +119,14 @@ CREATE TABLE hop_dong (
 );
 
 CREATE INDEX idx_hop_dong_nguoi_thue ON hop_dong (ma_nguoi_thue, trang_thai);
-CREATE INDEX idx_hop_dong_phong      ON hop_dong (ma_phong, trang_thai);
+CREATE INDEX idx_hop_dong_bds        ON hop_dong (ma_bat_dong_san, trang_thai);
 CREATE INDEX idx_hop_dong_chu_nha    ON hop_dong (ma_chu_nha);
 CREATE INDEX idx_hop_dong_bc_tx      ON hop_dong (ma_giao_dich_blockchain);
 CREATE INDEX idx_hop_dong_ngay       ON hop_dong (ngay_bat_dau, ngay_ket_thuc);
 
 
 -- ============================================================
--- 6. dich_vu - Dịch vụ (điện / nước / internet / rác...)
+-- 5. dich_vu - Dịch vụ (điện / nước / internet / rác...)
 -- ============================================================
 CREATE TABLE dich_vu (
     ma_dich_vu          SERIAL          PRIMARY KEY,
@@ -169,13 +147,12 @@ CREATE INDEX idx_dich_vu_bds ON dich_vu (ma_bat_dong_san);
 
 
 -- ============================================================
--- 7. su_dung_dich_vu - Ghi nhận sử dụng dịch vụ hàng tháng
+-- 6. su_dung_dich_vu - Ghi nhận sử dụng dịch vụ hàng tháng
 -- ============================================================
 CREATE TABLE su_dung_dich_vu (
     ma_su_dung          SERIAL          PRIMARY KEY,
     ma_hop_dong         INT             NOT NULL,
     ma_dich_vu          INT             NOT NULL,
-    -- Lưu ngày đầu tháng: VD 2025-01-01
     thang_tinh_tien     DATE            NOT NULL,
     chi_so_cu           DECIMAL(10, 2)  NOT NULL DEFAULT 0,
     chi_so_moi          DECIMAL(10, 2)  NOT NULL DEFAULT 0,
@@ -199,7 +176,7 @@ CREATE INDEX idx_su_dung_thang ON su_dung_dich_vu (thang_tinh_tien);
 
 
 -- ============================================================
--- 8. hoa_don - Hóa đơn tổng hợp hàng tháng
+-- 7. hoa_don - Hóa đơn tổng hợp hàng tháng
 -- ============================================================
 CREATE TABLE hoa_don (
     ma_hoa_don          SERIAL          PRIMARY KEY,
@@ -228,7 +205,7 @@ CREATE INDEX idx_hoa_don_trangthai_han ON hoa_don (trang_thai, han_thanh_toan);
 
 
 -- ============================================================
--- 9. thanh_toan - Ghi nhận thanh toán
+-- 8. thanh_toan - Ghi nhận thanh toán
 -- ============================================================
 CREATE TABLE thanh_toan (
     ma_thanh_toan           SERIAL          PRIMARY KEY,
@@ -258,11 +235,11 @@ CREATE INDEX idx_thanh_toan_tt       ON thanh_toan (trang_thai);
 
 
 -- ============================================================
--- 10. yeu_cau_sua_chua - Yêu cầu sửa chữa / báo sự cố
+-- 9. yeu_cau_sua_chua - Yêu cầu sửa chữa / báo sự cố
 -- ============================================================
 CREATE TABLE yeu_cau_sua_chua (
     ma_yeu_cau          SERIAL          PRIMARY KEY,
-    ma_phong            INT             NOT NULL,
+    ma_bat_dong_san     INT             NOT NULL,
     ma_nguoi_thue       INT             NOT NULL,
     tieu_de             VARCHAR(200)    NOT NULL,
     mo_ta               TEXT            NULL,
@@ -278,21 +255,21 @@ CREATE TABLE yeu_cau_sua_chua (
     ngay_tao            TIMESTAMP       NOT NULL DEFAULT NOW(),
     ngay_cap_nhat       TIMESTAMP       NOT NULL DEFAULT NOW(),
 
-    CONSTRAINT fk_sua_chua_phong
-        FOREIGN KEY (ma_phong) REFERENCES phong (ma_phong)
+    CONSTRAINT fk_sua_chua_bds
+        FOREIGN KEY (ma_bat_dong_san) REFERENCES bat_dong_san (ma_bat_dong_san)
         ON UPDATE CASCADE ON DELETE RESTRICT,
     CONSTRAINT fk_sua_chua_nguoi_thue
         FOREIGN KEY (ma_nguoi_thue) REFERENCES nguoi_dung (ma_nguoi_dung)
         ON UPDATE CASCADE ON DELETE RESTRICT
 );
 
-CREATE INDEX idx_sua_chua_phong      ON yeu_cau_sua_chua (ma_phong);
+CREATE INDEX idx_sua_chua_bds        ON yeu_cau_sua_chua (ma_bat_dong_san);
 CREATE INDEX idx_sua_chua_nguoi_thue ON yeu_cau_sua_chua (ma_nguoi_thue);
 CREATE INDEX idx_sua_chua_trangthai  ON yeu_cau_sua_chua (trang_thai);
 
 
 -- ============================================================
--- 11. thong_bao - Thông báo
+-- 10. thong_bao - Thông báo
 -- ============================================================
 CREATE TABLE thong_bao (
     ma_thong_bao        SERIAL          PRIMARY KEY,
