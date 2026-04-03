@@ -1,41 +1,48 @@
-﻿import express from "express";
+import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
-import mysql from "mysql2/promise";
+import path from "path";
 
-dotenv.config();
+// Đọc file .env từ thư mục gốc (index.ts nằm ở src/)
+dotenv.config({ path: path.resolve(__dirname, "../../../.env") });
+
+// Import routes
+import authRoutes from "./routes/authRoutes";
+import batDongSanRoutes from "./routes/batDongSanRoutes";
+import userRoutes from "./routes/userRoutes";
+
+// Import error handler (đặt cuối cùng)
+import { errorHandler } from "./middlewares/errorHandler";
+
+// Import db để kích hoạt kết nối khi khởi động
+import "./config/db";
 
 const app = express();
+
+// ====== Middlewares toàn cục ======
 app.use(cors());
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
-app.get("/", async (_req, res) => {
-  let dbStatus = "not checked";
+// ====== Routes ======
+app.use("/api/auth", authRoutes);
+app.use("/api/bat-dong-san", batDongSanRoutes);
+app.use("/api/users", userRoutes);
 
-  try {
-    const connection = await mysql.createConnection({
-      host: process.env.MYSQL_HOST || "localhost",
-      port: Number(process.env.MYSQL_PORT || 3306),
-      user: process.env.MYSQL_USER || "root",
-      password: process.env.MYSQL_PASSWORD || "",
-      database: process.env.MYSQL_DATABASE || "quanlythuenha",
-    });
-
-    await connection.ping();
-    dbStatus = "connected";
-    await connection.end();
-  } catch (_error) {
-    dbStatus = "not connected";
-  }
-
+// Health check
+app.get("/", (_req, res) => {
   res.json({
-    app: "QuanLyThueNha backend",
+    app: "QuanLyThueNha API",
+    version: "1.0.0",
     status: "ok",
-    database: dbStatus,
   });
 });
 
-const port = Number(process.env.PORT || 3000);
+// ====== Global Error Handler (phải đặt sau cùng) ======
+app.use(errorHandler);
+
+// ====== Khởi động server ======
+const port = Number(process.env.PORT) || 3000;
 app.listen(port, () => {
-  console.log(`Backend running on http://localhost:${port}`);
+  console.log(`🚀 Backend đang chạy tại http://localhost:${port}`);
 });
