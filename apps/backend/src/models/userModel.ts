@@ -1,5 +1,14 @@
 import pool from "../config/db";
 
+export interface UpdateUserDTO {
+  ho_ten?: string;
+  so_dien_thoai?: string;
+  anh_dai_dien?: string;
+  dia_chi_vi?: string;
+  dang_hoat_dong?: boolean;
+  vai_tro?: "admin" | "chu_nha" | "nguoi_thue";
+}
+
 // Kiểu dữ liệu người dùng
 export interface NguoiDung {
   ma_nguoi_dung: number;
@@ -55,7 +64,7 @@ export const createUser = async (data: {
 // Cập nhật thông tin
 export const updateUser = async (
   id: number,
-  data: Partial<Pick<NguoiDung, "ho_ten" | "so_dien_thoai" | "anh_dai_dien" | "dia_chi_vi">>
+  data: UpdateUserDTO
 ): Promise<NguoiDung | null> => {
   const fields: string[] = [];
   const values: unknown[] = [];
@@ -77,6 +86,14 @@ export const updateUser = async (
     fields.push(`dia_chi_vi = $${idx++}`);
     values.push(data.dia_chi_vi);
   }
+  if (data.vai_tro) {
+    fields.push(`vai_tro = $${idx++}`);
+    values.push(data.vai_tro);
+  }
+  if (data.dang_hoat_dong !== undefined) {
+    fields.push(`dang_hoat_dong = $${idx++}`);
+    values.push(data.dang_hoat_dong);
+  }
 
   if (fields.length === 0) return null;
 
@@ -88,4 +105,35 @@ export const updateUser = async (
     values
   );
   return result.rows[0] || null;
+};
+
+// Lấy danh sách người dùng (có phân trang và lọc theo vai trò)
+export const getAllUsers = async (
+  limit: number = 20,
+  offset: number = 0,
+  vai_tro?: string
+): Promise<NguoiDung[]> => {
+  let query = `SELECT ma_nguoi_dung, ho_ten, email, so_dien_thoai, vai_tro, da_xac_thuc, dang_hoat_dong, anh_dai_dien, ngay_tao FROM nguoi_dung`;
+  const values: any[] = [];
+  let idx = 1;
+
+  if (vai_tro) {
+    query += ` WHERE vai_tro = $${idx++}`;
+    values.push(vai_tro);
+  }
+
+  query += ` ORDER BY ngay_tao DESC LIMIT $${idx++} OFFSET $${idx++}`;
+  values.push(limit, offset);
+
+  const result = await pool.query<NguoiDung>(query, values);
+  return result.rows;
+};
+
+// Xóa mềm người dùng
+export const softDeleteUser = async (id: number): Promise<boolean> => {
+  const result = await pool.query(
+    `UPDATE nguoi_dung SET dang_hoat_dong = false, ngay_cap_nhat = NOW() WHERE ma_nguoi_dung = $1 RETURNING ma_nguoi_dung`,
+    [id]
+  );
+  return (result.rowCount ?? 0) > 0;
 };

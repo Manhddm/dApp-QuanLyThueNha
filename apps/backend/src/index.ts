@@ -8,6 +8,8 @@ dotenv.config({ path: path.resolve(__dirname, "../../../.env") });
 
 // Import routes
 import authRoutes from "./routes/authRoutes";
+import batDongSanRoutes from "./routes/batDongSanRoutes";
+import userRoutes from "./routes/userRoutes";
 
 // Import error handler (đặt cuối cùng)
 import { errorHandler } from "./middlewares/errorHandler";
@@ -24,6 +26,8 @@ app.use(express.urlencoded({ extended: true }));
 
 // ====== Routes ======
 app.use("/api/auth", authRoutes);
+app.use("/api/bat-dong-san", batDongSanRoutes);
+app.use("/api/users", userRoutes);
 
 // Health check
 app.get("/", (_req, res) => {
