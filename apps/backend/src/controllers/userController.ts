@@ -48,6 +48,19 @@ export const updateProfile = async (req: AuthRequest, res: Response, next: NextF
   }
 };
 
+export const updateMyProfile = async (req: AuthRequest, res: Response, next: NextFunction) => {
+  try {
+    const currentUserId = req.user!.ma_nguoi_dung;
+    const currentUserRole = req.user!.vai_tro;
+
+    // Gọi service với id = currentUserId
+    const data = await updateProfileService(currentUserId, req.body, currentUserId, currentUserRole);
+    res.json({ success: true, message: "Cập nhật hồ sơ cá nhân thành công", data });
+  } catch (error) {
+    next(error);
+  }
+};
+
 export const deleteUser = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     const id = parseInt(req.params.id as string);

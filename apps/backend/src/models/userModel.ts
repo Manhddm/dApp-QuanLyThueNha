@@ -5,6 +5,9 @@ export interface UpdateUserDTO {
   so_dien_thoai?: string;
   anh_dai_dien?: string;
   dia_chi_vi?: string;
+  so_cccd?: string;
+  anh_cccd_mat_truoc?: string;
+  anh_cccd_mat_sau?: string;
   dang_hoat_dong?: boolean;
   vai_tro?: "admin" | "chu_nha" | "nguoi_thue";
 }
@@ -26,6 +29,17 @@ export interface NguoiDung {
   ngay_cap_nhat: Date;
 }
 
+// Tìm người dùng theo địa chỉ ví (checksum hoặc bất kỳ casing)
+export const findUserByWalletAddress = async (
+  dia_chi_vi: string
+): Promise<NguoiDung | null> => {
+  const result = await pool.query<NguoiDung>(
+    "SELECT * FROM nguoi_dung WHERE LOWER(dia_chi_vi) = LOWER($1) AND dang_hoat_dong = true",
+    [dia_chi_vi]
+  );
+  return result.rows[0] || null;
+};
+
 // Tìm người dùng theo email
 export const findUserByEmail = async (email: string): Promise<NguoiDung | null> => {
   const result = await pool.query<NguoiDung>(
@@ -38,7 +52,7 @@ export const findUserByEmail = async (email: string): Promise<NguoiDung | null> 
 // Tìm người dùng theo ID
 export const findUserById = async (id: number): Promise<NguoiDung | null> => {
   const result = await pool.query<NguoiDung>(
-    "SELECT ma_nguoi_dung, ho_ten, email, so_dien_thoai, vai_tro, da_xac_thuc, dang_hoat_dong, anh_dai_dien, ngay_tao FROM nguoi_dung WHERE ma_nguoi_dung = $1",
+    "SELECT ma_nguoi_dung, dia_chi_vi, ho_ten, email, so_dien_thoai, vai_tro, da_xac_thuc, dang_hoat_dong, anh_dai_dien, ngay_tao FROM nguoi_dung WHERE ma_nguoi_dung = $1",
     [id]
   );
   return result.rows[0] || null;
@@ -57,6 +71,22 @@ export const createUser = async (data: {
      VALUES ($1, $2, $3, $4, $5, false, true, NOW(), NOW())
      RETURNING ma_nguoi_dung, ho_ten, email, vai_tro, da_xac_thuc`,
     [data.ho_ten, data.email, data.mat_khau_hash, data.so_dien_thoai || null, data.vai_tro]
+  );
+  return result.rows[0];
+};
+
+/** Tạo tài khoản lần đầu khi đăng nhập bằng ví (mat_khau_hash = hash ngẫu nhiên, không dùng để đăng nhập). */
+export const createUserFromWallet = async (data: {
+  dia_chi_vi: string;
+  ho_ten: string;
+  email: string;
+  mat_khau_hash: string;
+}): Promise<NguoiDung> => {
+  const result = await pool.query<NguoiDung>(
+    `INSERT INTO nguoi_dung (ho_ten, email, mat_khau_hash, dia_chi_vi, vai_tro, da_xac_thuc, dang_hoat_dong, ngay_tao, ngay_cap_nhat)
+     VALUES ($1, $2, $3, $4, 'nguoi_thue', false, true, NOW(), NOW())
+     RETURNING ma_nguoi_dung, ho_ten, email, dia_chi_vi, vai_tro, da_xac_thuc`,
+    [data.ho_ten, data.email, data.mat_khau_hash, data.dia_chi_vi]
   );
   return result.rows[0];
 };
@@ -85,6 +115,18 @@ export const updateUser = async (
   if (data.dia_chi_vi) {
     fields.push(`dia_chi_vi = $${idx++}`);
     values.push(data.dia_chi_vi);
+  }
+  if (data.so_cccd) {
+    fields.push(`so_cccd = $${idx++}`);
+    values.push(data.so_cccd);
+  }
+  if (data.anh_cccd_mat_truoc) {
+    fields.push(`anh_cccd_mat_truoc = $${idx++}`);
+    values.push(data.anh_cccd_mat_truoc);
+  }
+  if (data.anh_cccd_mat_sau) {
+    fields.push(`anh_cccd_mat_sau = $${idx++}`);
+    values.push(data.anh_cccd_mat_sau);
   }
   if (data.vai_tro) {
     fields.push(`vai_tro = $${idx++}`);

@@ -1,42 +1,42 @@
 import { Request, Response, NextFunction } from "express";
-import { registerUser, loginUser } from "../services/authService";
+import { requestWalletNonce, loginWithWalletSignature } from "../services/authService";
 import { findUserById } from "../models/userModel";
 import { AuthRequest } from "../middlewares/authMiddleware";
 
-// POST /api/auth/register
-export const register = async (req: Request, res: Response, next: NextFunction) => {
+// POST /api/auth/nonce — lấy message cần ký (Sign-In With Ethereum style)
+export const getNonce = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { ho_ten, email, mat_khau, so_dien_thoai, vai_tro } = req.body;
-
-    // Validate cơ bản
-    if (!ho_ten || !email || !mat_khau) {
-      res.status(400).json({ success: false, message: "Vui lòng điền đầy đủ họ tên, email và mật khẩu" });
+    const { address } = req.body;
+    if (!address || typeof address !== "string") {
+      res.status(400).json({ success: false, message: "Thiếu địa chỉ ví (address)" });
       return;
     }
 
-    const user = await registerUser({ ho_ten, email, mat_khau, so_dien_thoai, vai_tro });
+    const { message, address: normalized } = await requestWalletNonce(address);
 
-    res.status(201).json({
+    res.json({
       success: true,
-      message: "Đăng ký thành công",
-      data: user,
+      data: { message, address: normalized },
     });
   } catch (err) {
     next(err);
   }
 };
 
-// POST /api/auth/login
-export const login = async (req: Request, res: Response, next: NextFunction) => {
+// POST /api/auth/wallet — gửi chữ ký, nhận JWT
+export const walletLogin = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { email, mat_khau } = req.body;
+    const { address, message, signature } = req.body;
 
-    if (!email || !mat_khau) {
-      res.status(400).json({ success: false, message: "Vui lòng nhập email và mật khẩu" });
+    if (!address || !message || !signature) {
+      res.status(400).json({
+        success: false,
+        message: "Cần address, message và signature",
+      });
       return;
     }
 
-    const result = await loginUser(email, mat_khau);
+    const result = await loginWithWalletSignature(address, message, signature);
 
     res.json({
       success: true,
