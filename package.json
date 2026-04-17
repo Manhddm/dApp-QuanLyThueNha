@@ -1,4 +1,4 @@
-﻿{
+{
   "name": "quanlythuenha",
   "private": true,
   "version": "1.0.0",
@@ -15,5 +15,8 @@
     "test:contracts": "npm run test --workspace packages/contracts",
     "deploy:emerald:testnet": "npm run deploy:emerald:testnet --workspace packages/contracts",
     "deploy:sapphire:testnet": "npm run deploy:sapphire:testnet --workspace packages/contracts"
+  },
+  "devDependencies": {
+    "solc": "^0.8.20"
   }
 }
