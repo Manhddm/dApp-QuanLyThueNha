@@ -1,6 +1,28 @@
-﻿@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+
+@theme {
+  --color-surface: #0d0d18;
+  --color-surface-dim: #0d0d18;
+  --color-primary: #a8a4ff;
+  --color-secondary: #aa8ffd;
+  --color-on-surface: #e9e6f7;
+  --color-on-surface-variant: #aba9b9;
+  --color-surface-container-highest: #242434;
+  --color-surface-container-high: #1e1e2d;
+  --color-surface-container-low: #12121e;
+  --color-surface-container: #181826;
+  --color-outline-variant: #474754;
+  --color-outline: #757482;
+  --color-primary-dim: #675df9;
+  --color-primary-container: #9995ff;
+  --color-primary-fixed: #9995ff;
+  --color-on-primary: #1e009f;
+  --color-on-primary-fixed: #000000;
+  
+  --font-headline: "Space Grotesk", sans-serif;
+  --font-body: "Inter", sans-serif;
+  --font-label: "Inter", sans-serif;
+}
 
 html, body, #root {
   margin: 0;
