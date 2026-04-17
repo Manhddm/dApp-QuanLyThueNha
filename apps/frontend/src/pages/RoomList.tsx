@@ -1,6 +1,9 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useRooms } from "../hooks/useRooms";
-
+import ConnectWallet from "../components/ConnectWallet";
+import { message, Modal, Form, Input, InputNumber, Select } from "antd";
+import { useAuth } from "../context/AuthContext";
 export default function RoomList() {
     const {
         rooms,
@@ -10,8 +13,14 @@ export default function RoomList() {
         setCurrentPage,
         totalPages,
         totalItems,
-        deleteRoom
+        deleteRoom,
+        refreshRooms
     } = useRooms();
+    
+    const { token, user } = useAuth();
+
+    const [isModalVisible, setIsModalVisible] = useState(false);
+    const [form] = Form.useForm();
 
     const handleFilterChange = (e) => {
         const { name, value, type, checked } = e.target;
@@ -20,6 +29,53 @@ export default function RoomList() {
             [name]: type === 'checkbox' ? checked : value
         });
         setCurrentPage(1); // Reset page on filter change
+    };
+
+    const handleAddRoom = async (values: any) => {
+        if (!user || user.vai_tro === 'nguoi_thue') {
+            message.error("Chỉ Chủ nhà hoặc Admin mới được phép tạo phòng.");
+            return;
+        }
+
+        message.loading({ content: 'Đang lưu lên hệ thống...', key: 'tx' });
+        
+        try {
+            const bodyData = {
+                ten: values.title,
+                dia_chi: values.location || "Đang cập nhật",
+                thanh_pho: values.thanh_pho || "TP HCM",
+                quan_huyen: values.quan_huyen || "Quận 1",
+                loai_bat_dong_san: values.loai_bds || "nha_tro",
+                gia_thue: values.price || 0,
+                tien_dat_coc: values.deposit || 0,
+                dien_tich: values.dien_tich || 30, // mặc định
+                so_nguoi_toi_da: 2,
+                trang_thai: "trong",
+                mo_ta: values.mo_ta || "Chưa có mô tả"
+            };
+
+            const response = await fetch("http://localhost:3000/api/bat-dong-san", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`
+                },
+                body: JSON.stringify(bodyData)
+            });
+
+            const result = await response.json();
+            if (result.success) {
+                message.success({ content: 'Tạo phòng thành công!', key: 'tx', duration: 3 });
+                setIsModalVisible(false);
+                form.resetFields();
+                refreshRooms(); // Tải lại danh sách
+            } else {
+                message.error({ content: result.message || 'Tạo phòng thất bại', key: 'tx', duration: 3 });
+            }
+        } catch (error) {
+            console.error(error);
+            message.error({ content: 'Lỗi kết nối máy chủ', key: 'tx', duration: 3 });
+        }
     };
 
     return (
@@ -37,9 +93,7 @@ export default function RoomList() {
                         <Link to="/dashboard" className="text-[#e9e6f7]/60 hover:text-[#e9e6f7] transition-colors">Dashboard</Link>
                     </div>
                     <div className="flex items-center gap-4">
-                        <button className="bg-gradient-to-r from-[#a8a4ff] to-[#675df9] px-6 py-2 rounded-lg text-black font-bold text-xs uppercase tracking-wider hover:opacity-90 transition-all active:scale-95 duration-200 shadow-[0_0_20px_rgba(168,164,255,0.2)]">
-                            Connect Wallet
-                        </button>
+                        <ConnectWallet />
                     </div>
                 </div>
             </nav>
@@ -49,9 +103,9 @@ export default function RoomList() {
                 <header className="mb-12">
                     <div className="flex justify-between items-center mb-8">
                         <h1 className="font-['Space_Grotesk'] text-5xl font-bold tracking-tighter text-[#e9e6f7]">Khám Phá Không Gian Sống</h1>
-                        {/* Fake Dashboard Add Button For Demo */}
-                        <button onClick={() => alert("Chức năng thêm phòng sẽ được tích hợp trong CMS")} className="bg-[#a8a4ff]/20 text-[#a8a4ff] px-4 py-2 border border-[#a8a4ff]/30 rounded-lg hover:bg-[#a8a4ff]/30 flex gap-2">
-                            <span className="material-symbols-outlined text-sm">+</span> Thêm mới (CRUD Demo)
+                        
+                        <button onClick={() => setIsModalVisible(true)} className="bg-[#a8a4ff]/20 text-[#a8a4ff] px-4 py-2 border border-[#a8a4ff]/30 rounded-lg hover:bg-[#a8a4ff]/30 flex gap-2 transition-colors">
+                            <span className="material-symbols-outlined text-sm">+</span> Đăng phòng mới
                         </button>
                     </div>
                     <div className="bg-[#12121e] p-6 rounded-xl border border-white/5 grid grid-cols-1 md:grid-cols-4 gap-6 items-end relative z-10">
@@ -215,6 +269,61 @@ export default function RoomList() {
                     </p>
                 </div>
             </footer>
+
+            {/* Ant Design Modal for adding room */}
+            <Modal
+                title="Đăng phòng mới lên Blockchain"
+                open={isModalVisible}
+                onOk={() => form.submit()}
+                onCancel={() => setIsModalVisible(false)}
+                okText="Ký giao dịch"
+                cancelText="Hủy"
+                okButtonProps={{ className: "bg-gradient-to-r from-[#a8a4ff] to-[#675df9] text-black font-bold border-none" }}
+            >
+                <Form layout="vertical" form={form} onFinish={handleAddRoom} className="mt-4">
+                    <Form.Item label="Tiêu đề" name="title" rules={[{ required: true, message: 'Vui lòng nhập tên phòng' }]}>
+                        <Input placeholder="Ví dụ: Căn hộ cao cấp Quận 1" />
+                    </Form.Item>
+                    <div className="flex gap-4">
+                        <Form.Item label="Giá thuê (VNĐ/tháng)" name="price" className="flex-1" rules={[{ required: true }]}>
+                            <InputNumber min={100000} step={100000} className="w-full" style={{ width: '100%' }} />
+                        </Form.Item>
+                        <Form.Item label="Tiền cọc (VNĐ)" name="deposit" className="flex-1" rules={[{ required: true }]}>
+                            <InputNumber min={100000} step={100000} className="w-full" style={{ width: '100%' }} />
+                        </Form.Item>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                         <Form.Item label="Thành phố" name="thanh_pho" initialValue="TP HCM" rules={[{ required: true }]}>
+                            <Select>
+                                <Select.Option value="TP HCM">TP HCM</Select.Option>
+                                <Select.Option value="Hà Nội">Hà Nội</Select.Option>
+                                <Select.Option value="Đà Nẵng">Đà Nẵng</Select.Option>
+                            </Select>
+                        </Form.Item>
+                        <Form.Item label="Quận/Huyện" name="quan_huyen" rules={[{ required: true }]}>
+                            <Input placeholder="VD: Quận 1, Đống Đa..." />
+                        </Form.Item>
+                    </div>
+                    <Form.Item label="Địa chỉ cụ thể" name="location" rules={[{ required: true, message: 'Vui lòng nhập vị trí' }]}>
+                        <Input placeholder="Số nhà, Tên đường..." />
+                    </Form.Item>
+                    <div className="grid grid-cols-2 gap-4">
+                        <Form.Item label="Loại BĐS" name="loai_bds" initialValue="nha_tro" rules={[{ required: true }]}>
+                            <Select>
+                                <Select.Option value="nha_tro">Nhà Trọ</Select.Option>
+                                <Select.Option value="nha_o">Nhà Nguyên Căn</Select.Option>
+                                <Select.Option value="chung_cu">Chung Cư</Select.Option>
+                            </Select>
+                        </Form.Item>
+                        <Form.Item label="Diện tích (m2)" name="dien_tich" initialValue={30} rules={[{ required: true }]}>
+                            <InputNumber min={1} className="w-full" style={{ width: '100%' }} />
+                        </Form.Item>
+                    </div>
+                    <Form.Item label="Mô tả" name="mo_ta">
+                        <Input.TextArea rows={3} placeholder="Mô tả tiện ích, không gian..." />
+                    </Form.Item>
+                </Form>
+            </Modal>
         </div>
     );
 }

@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import ConnectWallet from "../components/ConnectWallet";
+import { message } from "antd";
 
 const contracts = [
     {
@@ -29,6 +31,13 @@ const contracts = [
 export default function Contracts() {
     const [activeTab, setActiveTab] = useState("myContracts");
 
+    const handleCloseContract = () => {
+        message.loading({ content: 'Đang yêu cầu chữ ký từ MetaMask để kết thúc hợp đồng...', key: 'closeTx' });
+        setTimeout(() => {
+            message.success({ content: 'Hợp đồng đã kết thúc! Smart Contract đang hoàn cọc.', key: 'closeTx', duration: 3 });
+        }, 2000);
+    };
+
     return (
         <div className="bg-[#0d0d18] text-[#e9e6f7] font-['Inter'] min-h-screen">
 
@@ -44,9 +53,9 @@ export default function Contracts() {
                         <Link to="/contracts" className="text-[#a8a4ff] border-b-2 border-[#a8a4ff] pb-1 px-3 py-1">Hợp đồng</Link>
                         <Link to="/dashboard" className="text-[#e9e6f7]/60 hover:text-[#e9e6f7] hover:bg-white/5 transition-all duration-300 px-3 py-1 rounded-lg">Dashboard</Link>
                     </div>
-                    <button className="bg-gradient-to-r from-[#a8a4ff] to-[#675df9] text-black px-6 py-2 rounded-lg font-bold uppercase text-xs tracking-wider hover:scale-105 transition-transform active:scale-95 duration-200">
-                        Connect Wallet
-                    </button>
+                    <div className="flex items-center gap-4">
+                        <ConnectWallet className="px-6 py-2" />
+                    </div>
                 </div>
             </nav>
 
@@ -149,7 +158,7 @@ export default function Contracts() {
                                             <span className="material-symbols-outlined text-sm">open_in_new</span>
                                             Xem trên Etherscan
                                         </a>
-                                        <button className="flex-1 py-3 px-4 rounded-xl border border-[#474754] hover:border-[#ff6e84] hover:text-[#ff6e84] transition-all text-sm font-medium">
+                                        <button onClick={handleCloseContract} className="flex-1 py-3 px-4 rounded-xl border border-[#474754] hover:border-[#ff6e84] hover:text-[#ff6e84] transition-all text-sm font-medium">
                                             Kết thúc hợp đồng
                                         </button>
                                     </div>

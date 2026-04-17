@@ -1,6 +1,9 @@
 import { Link } from "react-router-dom";
+import ConnectWallet from "../components/ConnectWallet";
+import { useConnect } from "wagmi";
 
 export default function Home() {
+    const { connect, connectors } = useConnect();
     return (
         <div className="bg-[#0d0d18] text-[#e9e6f7] font-['Inter'] min-h-screen">
 
@@ -16,9 +19,7 @@ export default function Home() {
                         <Link to="/contracts" className="text-[#e9e6f7]/60 hover:text-[#e9e6f7] transition-colors">Hợp đồng</Link>
                         <Link to="/dashboard" className="text-[#e9e6f7]/60 hover:text-[#e9e6f7] transition-colors">Dashboard</Link>
                     </div>
-                    <button className="bg-gradient-to-r from-[#a8a4ff] to-[#675df9] text-black px-6 py-2.5 rounded-lg text-sm font-bold uppercase tracking-wider hover:opacity-90 active:scale-95 transition-all duration-200">
-                        Connect Wallet
-                    </button>
+                    <ConnectWallet className="px-6 py-2.5 text-sm" />
                 </div>
             </nav>
 
@@ -170,7 +171,7 @@ export default function Home() {
                                 Sẵn sàng để bắt đầu hành trình mới?
                             </h2>
                             <div className="flex flex-wrap justify-center gap-6">
-                                <button className="bg-white text-[#0d0d18] px-10 py-5 rounded-full font-bold uppercase tracking-widest hover:scale-105 transition-transform">
+                                <button type="button" onClick={() => connect({ connector: connectors[0] })} className="bg-white text-[#0d0d18] px-10 py-5 rounded-full font-bold uppercase tracking-widest hover:scale-105 transition-transform">
                                     Kết nối ví ngay
                                 </button>
                                 <button className="bg-[#0d0d18] text-[#e9e6f7] px-10 py-5 rounded-full font-bold uppercase tracking-widest border border-white/10 hover:bg-[#2b2a3c] transition-all">

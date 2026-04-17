@@ -1,15 +1,22 @@
 import { useNavigate } from "react-router-dom";
+import ConnectWallet from "../components/ConnectWallet";
+import { message } from "antd";
 
 export default function RoomDetail() {
     const navigate = useNavigate();
 
     const handleDeposit = () => {
-        // lưu data (giống HTML bạn đang làm)
-        localStorage.setItem("room_name", "Penthouse Skyview Quận 1 — Block A1");
-        localStorage.setItem("rent_price", "0.5 ETH");
-        localStorage.setItem("deposit", "1.0 ETH");
+        message.loading({ content: 'Vui lòng xác nhận giao dịch trên MetaMask...', key: 'tx' });
+        
+        setTimeout(() => {
+            message.success({ content: 'Giao dịch thành công! Hợp đồng đã được ký.', key: 'tx', duration: 3 });
+            // lưu data (giống HTML bạn đang làm)
+            localStorage.setItem("room_name", "Penthouse Skyview Quận 1 — Block A1");
+            localStorage.setItem("rent_price", "0.5 ETH");
+            localStorage.setItem("deposit", "1.0 ETH");
 
-        navigate("/payment");
+            navigate("/payment");
+        }, 2500);
     };
 
     return (
@@ -18,10 +25,8 @@ export default function RoomDetail() {
             {/* NAVBAR */}
             <nav className="bg-[#0d0d18]/80 backdrop-blur-xl sticky top-0 z-50 shadow-2xl">
                 <div className="flex justify-between items-center px-8 py-4 max-w-7xl mx-auto">
-                    <div className="text-2xl font-bold">RentChain</div>
-                    <button className="bg-gradient-to-r from-purple-400 to-indigo-500 px-6 py-2 rounded-lg font-bold text-sm">
-                        Connect Wallet
-                    </button>
+                    <div className="text-2xl font-bold font-['Space_Grotesk']">QuanLyThueNha</div>
+                    <ConnectWallet />
                 </div>
             </nav>
 

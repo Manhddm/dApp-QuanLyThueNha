@@ -1,4 +1,4 @@
-﻿import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Home from "./pages/Home";
 import RoomList from "./pages/RoomList";
 import RoomDetail from "./pages/RoomDetail";
@@ -6,6 +6,9 @@ import Contracts from "./pages/Contracts";
 import Dashboard from "./pages/Dashboard";
 import Payment from "./pages/Payment";
 import AccessDenied from "./pages/AccessDenied";
+import Login from "./pages/Login";
+import Register from "./pages/Register";
+import Profile from "./pages/Profile";
 
 function App() {
   return (
@@ -18,6 +21,9 @@ function App() {
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/payment" element={<Payment />} />
         <Route path="/access-denied" element={<AccessDenied />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/profile" element={<Profile />} />
       </Routes>
     </Router>
   );

@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { mockRooms } from '../data/mockRooms';
 
 export interface Room {
@@ -26,22 +26,49 @@ export const useRooms = () => {
     const [loading, setLoading] = useState(true);
     const [filters, setFilters] = useState<RoomFilters>({
         location: '',
-        priceMax: 5,
+        priceMax: 50000000, // Thay ranh giới giá tối đa do đơn vị chuyển từ ETH -> VNĐ
         isAvailable: false
     });
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 6;
 
-    // Load mock data
-    useEffect(() => {
-        const loadRooms = async () => {
-            // Simulate API delay
-            await new Promise(resolve => setTimeout(resolve, 500));
-            setRooms(mockRooms);
+    const fetchRooms = useCallback(async () => {
+        setLoading(true);
+        try {
+            const response = await fetch("http://localhost:3000/api/bat-dong-san");
+            const result = await response.json();
+            
+            if (result.success && result.data) {
+                // Map DB schema sang Frontend Schema cũ để tránh breaking UI
+                const mappedRooms: Room[] = result.data.map((r: any) => ({
+                    id: r.ma_bat_dong_san,
+                    title: r.ten,
+                    description: r.mo_ta || "Chưa có mô tả chi tiết.",
+                    image: r.duong_dan_anh || "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800&q=80",
+                    price: parseFloat(r.gia_thue),
+                    deposit: parseFloat(r.tien_dat_coc),
+                    location: `${r.dia_chi}, ${r.phuong_xa ? r.phuong_xa + ', ' : ''}${r.quan_huyen}, ${r.thanh_pho}`,
+                    amenities: r.tien_nghi || [],
+                    isAvailable: r.trang_thai === 'trong',
+                    createdAt: r.ngay_tao,
+                    owner: (r.ma_chu_so_huu || "Unknown").toString()
+                }));
+                setRooms(mappedRooms);
+            } else {
+                setRooms(mockRooms); // Fallback về mock data nếu fail
+            }
+        } catch (error) {
+            console.error("Lỗi fetch rooms", error);
+            setRooms(mockRooms); // Fallback
+        } finally {
             setLoading(false);
-        };
-        loadRooms();
+        }
     }, []);
+
+    // Load data from actual endpoint
+    useEffect(() => {
+        fetchRooms();
+    }, [fetchRooms]);
 
     // Filter and paginate rooms
     const filteredRooms = useMemo(() => {
@@ -79,6 +106,7 @@ export const useRooms = () => {
         setCurrentPage,
         totalPages,
         totalItems,
-        deleteRoom
+        deleteRoom,
+        refreshRooms: fetchRooms
     };
 };

@@ -1,4 +1,6 @@
 import { Link } from "react-router-dom";
+import ConnectWallet from "../components/ConnectWallet";
+import { message } from "antd";
 
 const paymentHistory = [
     { date: "Sep 10, 2024", amount: "0.5 ETH", hash: "0x3f...d21" },
@@ -25,6 +27,13 @@ const steps = [
 ];
 
 export default function Payment() {
+    const handlePayment = () => {
+        message.loading({ content: 'Chờ MetaMask xử lý giao dịch thanh toán...', key: 'payTx' });
+        setTimeout(() => {
+            message.success({ content: 'Thanh toán 0.5 ETH thành công!', key: 'payTx', duration: 3 });
+        }, 2500);
+    };
+
     return (
         <div className="bg-[#0d0d18] text-[#e9e6f7] font-['Inter'] min-h-screen">
 
@@ -40,9 +49,9 @@ export default function Payment() {
                         <Link to="/contracts" className="text-[#a8a4ff] border-b-2 border-[#a8a4ff] pb-1">Hợp đồng</Link>
                         <Link to="/dashboard" className="text-[#e9e6f7]/60 hover:text-[#e9e6f7] transition-colors hover:bg-white/5 px-3 py-1 rounded-lg">Dashboard</Link>
                     </div>
-                    <button className="bg-[#9995ff] text-[#16007d] font-['Space_Grotesk'] font-bold py-2 px-6 rounded-lg active:scale-95 duration-200 transition-all shadow-lg shadow-[#a8a4ff]/20">
-                        Connect Wallet
-                    </button>
+                    <div className="flex items-center gap-4">
+                        <ConnectWallet className="px-6 py-2" />
+                    </div>
                 </div>
             </nav>
 
@@ -107,7 +116,7 @@ export default function Payment() {
                                 </div>
                             </div>
 
-                            <button className="w-full py-4 bg-gradient-to-r from-[#a8a4ff] to-[#675df9] text-black font-['Space_Grotesk'] font-bold text-lg rounded-xl shadow-lg shadow-[#a8a4ff]/20 hover:scale-[1.02] active:scale-95 transition-all mb-8">
+                            <button onClick={handlePayment} className="w-full py-4 bg-gradient-to-r from-[#a8a4ff] to-[#675df9] text-black font-['Space_Grotesk'] font-bold text-lg rounded-xl shadow-lg shadow-[#a8a4ff]/20 hover:scale-[1.02] active:scale-95 transition-all mb-8">
                                 Thanh toán ngay
                             </button>
 

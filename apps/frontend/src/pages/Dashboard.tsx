@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import ConnectWallet from "../components/ConnectWallet";
 
 const stats = [
     {
@@ -86,13 +87,7 @@ export default function Dashboard() {
                         <Link to="/dashboard" className="text-[#a8a4ff] border-b-2 border-[#a8a4ff] pb-1">Dashboard</Link>
                     </div>
                     <div className="flex items-center gap-4">
-                        <div className="hidden sm:flex items-center gap-2 bg-[#1e1e2d] px-4 py-2 rounded-full border border-white/5">
-                            <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
-                            <span className="font-mono text-xs text-[#aba9b9]">0x71C...8B2A</span>
-                        </div>
-                        <button className="bg-gradient-to-r from-[#a8a4ff] to-[#675df9] text-black font-bold py-2 px-6 rounded-lg text-sm uppercase hover:opacity-90 transition-all active:scale-95 duration-200">
-                            Connect Wallet
-                        </button>
+                        <ConnectWallet />
                     </div>
                 </nav>
             </header>
