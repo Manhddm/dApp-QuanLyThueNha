@@ -1,18 +1,18 @@
-// SPDX-License-Identifier: MIT
-pragma solidity ^0.8.24;
+﻿// SPDX-License-Identifier: MIT
+// pragma solidity ^0.8.24;
 
-import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
+// import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+// import "@openzeppelin/contracts/access/Ownable.sol";
 
-contract AppToken is ERC20, Ownable {
-    constructor(address initialOwner)
-        ERC20("App Token", "APT")
-        Ownable(initialOwner)
-    {
-        _mint(msg.sender, 1000000 * 10 ** decimals());
-    }
+// contract AppToken is ERC20, Ownable {
+//     constructor(address initialOwner)
+//         ERC20("App Token", "APT")
+//         Ownable(initialOwner)
+//     {
+//         _mint(msg.sender, 1000000 * 10 ** decimals());
+//     }
 
-    function mint(address to, uint256 amount) external onlyOwner {
-        _mint(to, amount);
-    }
-}
+//     function mint(address to, uint256 amount) external onlyOwner {
+//         _mint(to, amount);
+//     }
+// }

@@ -71,9 +71,19 @@ contract RentHouse {
         emit RentRequested(contractCount, msg.sender, _roomId, msg.value);
     }
 
+    mapping(uint => bool) public phongDaDuocThue; // roomId → đã có người thuê chưa
+
     // Chủ nhà duyệt cho thuê phòng
     function duyetThuePhong(uint _contractId) public onlyLandlord {
         require(contracts[_contractId].status == Status.Pending, unicode"Hợp đồng không ở trạng thái chờ duyệt !");
+
+        uint roomId = contracts[_contractId].roomId;
+    
+        // Kiểm tra phòng còn trống không
+        require(!phongDaDuocThue[roomId], "Phong nay da co nguoi thue roi!");
+        
+        // Đánh dấu phòng đã có người thuê
+        phongDaDuocThue[roomId] = true;
         
         contracts[_contractId].status = Status.Active;
         emit RentApproved(_contractId, contracts[_contractId].tenant, contracts[_contractId].roomId);
