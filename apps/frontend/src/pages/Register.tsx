@@ -1,7 +1,7 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { message } from "antd";
-import { useConnect } from "wagmi";
+import { useConnect, useAccount } from "wagmi";
 
 export default function Register() {
     const [fullName, setFullName] = useState("");
@@ -10,6 +10,7 @@ export default function Register() {
     const [confirmPassword, setConfirmPassword] = useState("");
     const navigate = useNavigate();
     const { connect, connectors } = useConnect();
+    const { address, isConnected } = useAccount();
 
     const handleRegister = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -23,7 +24,12 @@ export default function Register() {
             const response = await fetch("http://localhost:3000/api/auth/register", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ ho_ten: fullName, email, mat_khau: password })
+                body: JSON.stringify({ 
+                    ho_ten: fullName, 
+                    email, 
+                    mat_khau: password,
+                    dia_chi_vi: address // Send the wallet address if connected
+                })
             });
             const data = await response.json();
 
@@ -64,6 +70,14 @@ export default function Register() {
                     <div className="mb-8">
                         <h2 className="font-headline text-2xl font-medium text-on-surface">Tạo tài khoản mới</h2>
                         <p className="text-on-surface-variant text-sm mt-1">Bắt đầu hành trình bất động sản kỹ thuật số của bạn.</p>
+                        {isConnected && (
+                            <div className="mt-4 flex items-center gap-2 px-3 py-2 bg-primary/10 border border-primary/20 rounded-lg">
+                                <span className="material-symbols-outlined text-primary text-sm">account_balance_wallet</span>
+                                <span className="text-[10px] font-medium text-primary uppercase tracking-wider">
+                                    Đã liên kết: {address?.slice(0, 6)}...{address?.slice(-4)}
+                                </span>
+                            </div>
+                        )}
                     </div>
 
                     <form className="space-y-5" onSubmit={handleRegister}>

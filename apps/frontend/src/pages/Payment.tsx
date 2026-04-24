@@ -1,38 +1,61 @@
 import { Link } from "react-router-dom";
 import ConnectWallet from "../components/ConnectWallet";
 import { message } from "antd";
-
-const paymentHistory = [
-    { date: "Sep 10, 2024", amount: "0.5 ETH", hash: "0x3f...d21" },
-    { date: "Aug 10, 2024", amount: "0.5 ETH", hash: "0x1a...f89" },
-    { date: "Jul 10, 2024", amount: "0.5 ETH", hash: "0x8e...c44" },
-];
-
-const steps = [
-    {
-        label: "Chờ xác nhận",
-        sub: "Giao dịch đã được khởi tạo",
-        status: "done",
-    },
-    {
-        label: "Đang xử lý",
-        sub: "Đang gửi yêu cầu lên Blockchain",
-        status: "active",
-    },
-    {
-        label: "Hoàn tất",
-        sub: "Giao dịch thành công",
-        status: "pending",
-    },
-];
+import { useRentHouse } from "../hooks/useRentHouse";
+import { useEffect, useMemo } from "react";
+import { parseEther, formatEther } from "viem";
+import { useAccount, useConnect } from "wagmi";
 
 export default function Payment() {
+    const { isConnected } = useAccount();
+    const { connect, connectors } = useConnect();
+    const { myContracts, thanhToanThang, isPending, isWaiting, isSuccess, hash } = useRentHouse();
+
+    // Lấy hợp đồng Active đầu tiên để minh họa thanh toán
+    const activeContract = useMemo(() => {
+        return myContracts?.find((c: any) => Number(c.status) === 1); // 1 = Active
+    }, [myContracts]);
+
+    const currentMonth = 202404; // Giả định tháng hiện tại
+
     const handlePayment = () => {
+        if (!isConnected) {
+            const connector = connectors.find(c => c.id === 'injected') || connectors[0];
+            connect({ connector });
+            return;
+        }
+        if (!activeContract) {
+            message.warning("Bạn không có hợp đồng hoạt động nào để thanh toán.");
+            return;
+        }
+        
         message.loading({ content: 'Chờ MetaMask xử lý giao dịch thanh toán...', key: 'payTx' });
-        setTimeout(() => {
-            message.success({ content: 'Thanh toán 0.5 ETH thành công!', key: 'payTx', duration: 3 });
-        }, 2500);
+        thanhToanThang(Number(activeContract.id), currentMonth, activeContract.rentPrice);
     };
+
+    useEffect(() => {
+        if (isSuccess) {
+            message.success({ content: `Thanh toán thành công! Mã giao dịch: ${hash?.slice(0, 10)}...`, key: 'payTx', duration: 5 });
+        }
+    }, [isSuccess, hash]);
+
+    const steps = [
+        {
+            label: "Khởi tạo",
+            sub: "Dữ liệu từ Smart Contract",
+            status: activeContract ? "done" : "active",
+        },
+        {
+            label: "Xác nhận ví",
+            sub: isPending ? "Đang chờ ký..." : isWaiting ? "Đang gửi lên mạng..." : "Chờ lệnh",
+            status: isPending || isWaiting ? "active" : isSuccess ? "done" : "pending",
+        },
+        {
+            label: "Hoàn tất",
+            sub: isSuccess ? "Giao dịch đã được xác nhận" : "Chờ xác nhận",
+            status: isSuccess ? "done" : "pending",
+        },
+    ];
 
     return (
         <div className="bg-[#0d0d18] text-[#e9e6f7] font-['Inter'] min-h-screen">
@@ -116,8 +139,15 @@ export default function Payment() {
                                 </div>
                             </div>
 
-                            <button onClick={handlePayment} className="w-full py-4 bg-gradient-to-r from-[#a8a4ff] to-[#675df9] text-black font-['Space_Grotesk'] font-bold text-lg rounded-xl shadow-lg shadow-[#a8a4ff]/20 hover:scale-[1.02] active:scale-95 transition-all mb-8">
-                                Thanh toán ngay
+                            <button 
+                                onClick={handlePayment} 
+                                className={`w-full py-4 font-['Space_Grotesk'] font-bold text-lg rounded-xl shadow-lg transition-all mb-8 ${
+                                    isConnected 
+                                        ? "bg-gradient-to-r from-[#a8a4ff] to-[#675df9] text-black hover:scale-[1.02] shadow-[#a8a4ff]/20" 
+                                        : "bg-gray-700 text-gray-400 cursor-pointer"
+                                }`}
+                            >
+                                {isConnected ? "Thanh toán ngay" : "Kết nối ví để thanh toán"}
                             </button>
 
                             {/* Transaction Stepper */}

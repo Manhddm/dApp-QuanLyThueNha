@@ -1,0 +1,618 @@
+[
+  {
+    "inputs": [],
+    "stateMutability": "nonpayable",
+    "type": "constructor"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "contractId",
+        "type": "uint256"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "tenant",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "depositReturned",
+        "type": "uint256"
+      }
+    ],
+    "name": "ContractEnded",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "contractId",
+        "type": "uint256"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "tenant",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "roomId",
+        "type": "uint256"
+      }
+    ],
+    "name": "RentApproved",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "contractId",
+        "type": "uint256"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "tenant",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "amount",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "thangNam",
+        "type": "uint256"
+      }
+    ],
+    "name": "RentPaid",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "contractId",
+        "type": "uint256"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "tenant",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "depositReturned",
+        "type": "uint256"
+      }
+    ],
+    "name": "RentRejected",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "contractId",
+        "type": "uint256"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "tenant",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "roomId",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "deposit",
+        "type": "uint256"
+      }
+    ],
+    "name": "RentRequested",
+    "type": "event"
+  },
+  {
+    "inputs": [],
+    "name": "contractCount",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "name": "contracts",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "id",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "roomId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "address",
+        "name": "landlord",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "tenant",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "rentPrice",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "deposit",
+        "type": "uint256"
+      },
+      {
+        "internalType": "enum RentHouse.Status",
+        "name": "status",
+        "type": "uint8"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "danhSachChoDuyet",
+    "outputs": [
+      {
+        "components": [
+          {
+            "internalType": "uint256",
+            "name": "id",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "roomId",
+            "type": "uint256"
+          },
+          {
+            "internalType": "address",
+            "name": "landlord",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "tenant",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "rentPrice",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "deposit",
+            "type": "uint256"
+          },
+          {
+            "internalType": "enum RentHouse.Status",
+            "name": "status",
+            "type": "uint8"
+          }
+        ],
+        "internalType": "struct RentHouse.RentalContract[]",
+        "name": "",
+        "type": "tuple[]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "danhSachHopDong",
+    "outputs": [
+      {
+        "components": [
+          {
+            "internalType": "uint256",
+            "name": "id",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "roomId",
+            "type": "uint256"
+          },
+          {
+            "internalType": "address",
+            "name": "landlord",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "tenant",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "rentPrice",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "deposit",
+            "type": "uint256"
+          },
+          {
+            "internalType": "enum RentHouse.Status",
+            "name": "status",
+            "type": "uint8"
+          }
+        ],
+        "internalType": "struct RentHouse.RentalContract[]",
+        "name": "",
+        "type": "tuple[]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "_contractId",
+        "type": "uint256"
+      }
+    ],
+    "name": "duyetThuePhong",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "_contractId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_thangNam",
+        "type": "uint256"
+      }
+    ],
+    "name": "kiemTraThanhToan",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "landlord",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "name": "paymentTracking",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "_contractId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_thangNam",
+        "type": "uint256"
+      }
+    ],
+    "name": "thanhToanThang",
+    "outputs": [],
+    "stateMutability": "payable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "_thangNam",
+        "type": "uint256"
+      }
+    ],
+    "name": "theoDoiThanhToan",
+    "outputs": [
+      {
+        "components": [
+          {
+            "internalType": "uint256",
+            "name": "contractId",
+            "type": "uint256"
+          },
+          {
+            "internalType": "address",
+            "name": "tenant",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "roomId",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "rentPrice",
+            "type": "uint256"
+          },
+          {
+            "internalType": "bool",
+            "name": "paid",
+            "type": "bool"
+          }
+        ],
+        "internalType": "struct RentHouse.PaymentRecord[]",
+        "name": "",
+        "type": "tuple[]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "_roomId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_rentPrice",
+        "type": "uint256"
+      }
+    ],
+    "name": "thuePhong",
+    "outputs": [],
+    "stateMutability": "payable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "_contractId",
+        "type": "uint256"
+      }
+    ],
+    "name": "traPhong",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "_contractId",
+        "type": "uint256"
+      }
+    ],
+    "name": "tuChoiThuePhong",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "xemHopDong",
+    "outputs": [
+      {
+        "components": [
+          {
+            "internalType": "uint256",
+            "name": "id",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "roomId",
+            "type": "uint256"
+          },
+          {
+            "internalType": "address",
+            "name": "landlord",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "tenant",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "rentPrice",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "deposit",
+            "type": "uint256"
+          },
+          {
+            "internalType": "enum RentHouse.Status",
+            "name": "status",
+            "type": "uint8"
+          }
+        ],
+        "internalType": "struct RentHouse.RentalContract[]",
+        "name": "",
+        "type": "tuple[]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "_tenant",
+        "type": "address"
+      }
+    ],
+    "name": "xemHopDongKhach",
+    "outputs": [
+      {
+        "components": [
+          {
+            "internalType": "uint256",
+            "name": "id",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "roomId",
+            "type": "uint256"
+          },
+          {
+            "internalType": "address",
+            "name": "landlord",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "tenant",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "rentPrice",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "deposit",
+            "type": "uint256"
+          },
+          {
+            "internalType": "enum RentHouse.Status",
+            "name": "status",
+            "type": "uint8"
+          }
+        ],
+        "internalType": "struct RentHouse.RentalContract[]",
+        "name": "",
+        "type": "tuple[]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "_contractId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256[]",
+        "name": "_danhSachThang",
+        "type": "uint256[]"
+      }
+    ],
+    "name": "xemLichSuThanhToan",
+    "outputs": [
+      {
+        "internalType": "bool[]",
+        "name": "",
+        "type": "bool[]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  }
+]

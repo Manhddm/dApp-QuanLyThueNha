@@ -1,23 +1,47 @@
 import { useNavigate } from "react-router-dom";
 import ConnectWallet from "../components/ConnectWallet";
 import { message } from "antd";
+import { useRentHouse } from "../hooks/useRentHouse";
+import { useEffect } from "react";
+import { parseEther } from "viem";
+import { useAccount, useConnect } from "wagmi";
 
 export default function RoomDetail() {
     const navigate = useNavigate();
+    const { isConnected } = useAccount();
+    const { connect, connectors } = useConnect();
+    const { thuePhong, isPending, isWaiting, isSuccess, hash, writeError } = useRentHouse();
+
+    const roomId = 101; // Giả định ID phòng
+    const rentPrice = parseEther("0.5");
+    const deposit = parseEther("1.0");
 
     const handleDeposit = () => {
-        message.loading({ content: 'Vui lòng xác nhận giao dịch trên MetaMask...', key: 'tx' });
+        if (!isConnected) {
+            const connector = connectors.find(c => c.id === 'injected') || connectors[0];
+            connect({ connector });
+            return;
+        }
+        if (isPending || isWaiting) return;
         
-        setTimeout(() => {
-            message.success({ content: 'Giao dịch thành công! Hợp đồng đã được ký.', key: 'tx', duration: 3 });
-            // lưu data (giống HTML bạn đang làm)
-            localStorage.setItem("room_name", "Penthouse Skyview Quận 1 — Block A1");
-            localStorage.setItem("rent_price", "0.5 ETH");
-            localStorage.setItem("deposit", "1.0 ETH");
-
-            navigate("/payment");
-        }, 2500);
+        message.loading({ content: 'Vui lòng xác nhận giao dịch trên MetaMask...', key: 'tx' });
+        thuePhong(roomId, rentPrice, deposit);
     };
+
+    useEffect(() => {
+        if (isSuccess) {
+            message.success({ content: 'Giao dịch thành công! Hợp đồng đã được khởi tạo trên Blockchain.', key: 'tx', duration: 5 });
+            localStorage.setItem("room_name", "Penthouse Skyview — Block A1");
+            localStorage.setItem("rent_hash", hash || "");
+            navigate("/contracts");
+        }
+    }, [isSuccess, hash, navigate]);
+
+    useEffect(() => {
+        if (writeError) {
+            message.error({ content: `Lỗi: ${writeError.message}`, key: 'tx' });
+        }
+    }, [writeError]);
 
     return (
         <div className="bg-[#0d0d18] text-[#e9e6f7] min-h-screen">
@@ -103,9 +127,13 @@ export default function RoomDetail() {
 
                         <button
                             onClick={handleDeposit}
-                            className="w-full bg-gradient-to-r from-purple-400 to-indigo-500 py-4 rounded-xl font-bold hover:scale-105 transition"
+                            className={`w-full py-4 rounded-xl font-bold transition-all ${
+                                isConnected 
+                                    ? "bg-gradient-to-r from-purple-400 to-indigo-500 hover:scale-[1.02]" 
+                                    : "bg-gray-700 text-gray-400 cursor-pointer"
+                            }`}
                         >
-                            Đặt cọc & Ký hợp đồng
+                            {isConnected ? "Đặt cọc & Ký hợp đồng" : "Kết nối ví để Đặt cọc"}
                         </button>
 
                     </div>

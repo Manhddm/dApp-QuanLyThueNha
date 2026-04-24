@@ -11,6 +11,7 @@ export const registerUser = async (data: {
   email: string;
   mat_khau: string;
   so_dien_thoai?: string;
+  dia_chi_vi?: string;
   vai_tro?: string;
 }) => {
   // Kiểm tra email đã tồn tại chưa
@@ -28,6 +29,7 @@ export const registerUser = async (data: {
     email: data.email,
     mat_khau_hash,
     so_dien_thoai: data.so_dien_thoai,
+    dia_chi_vi: data.dia_chi_vi,
     vai_tro: data.vai_tro || "nguoi_thue",
   });
 

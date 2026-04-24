@@ -6,7 +6,7 @@ import { AuthRequest } from "../middlewares/authMiddleware";
 // POST /api/auth/register
 export const register = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { ho_ten, email, mat_khau, so_dien_thoai, vai_tro } = req.body;
+    const { ho_ten, email, mat_khau, so_dien_thoai, vai_tro, dia_chi_vi } = req.body;
 
     // Validate cơ bản
     if (!ho_ten || !email || !mat_khau) {
@@ -14,7 +14,7 @@ export const register = async (req: Request, res: Response, next: NextFunction) 
       return;
     }
 
-    const user = await registerUser({ ho_ten, email, mat_khau, so_dien_thoai, vai_tro });
+    const user = await registerUser({ ho_ten, email, mat_khau, so_dien_thoai, vai_tro, dia_chi_vi });
 
     res.status(201).json({
       success: true,

@@ -50,13 +50,14 @@ export const createUser = async (data: {
   email: string;
   mat_khau_hash: string;
   so_dien_thoai?: string;
+  dia_chi_vi?: string;
   vai_tro: string;
 }): Promise<NguoiDung> => {
   const result = await pool.query<NguoiDung>(
-    `INSERT INTO nguoi_dung (ho_ten, email, mat_khau_hash, so_dien_thoai, vai_tro, da_xac_thuc, dang_hoat_dong, ngay_tao, ngay_cap_nhat)
-     VALUES ($1, $2, $3, $4, $5, false, true, NOW(), NOW())
-     RETURNING ma_nguoi_dung, ho_ten, email, vai_tro, da_xac_thuc`,
-    [data.ho_ten, data.email, data.mat_khau_hash, data.so_dien_thoai || null, data.vai_tro]
+    `INSERT INTO nguoi_dung (ho_ten, email, mat_khau_hash, so_dien_thoai, dia_chi_vi, vai_tro, da_xac_thuc, dang_hoat_dong, ngay_tao, ngay_cap_nhat)
+     VALUES ($1, $2, $3, $4, $5, $6, false, true, NOW(), NOW())
+     RETURNING ma_nguoi_dung, ho_ten, email, vai_tro, dia_chi_vi, da_xac_thuc`,
+    [data.ho_ten, data.email, data.mat_khau_hash, data.so_dien_thoai || null, data.dia_chi_vi || null, data.vai_tro]
   );
   return result.rows[0];
 };

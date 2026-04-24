@@ -4,7 +4,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ConfigProvider } from "antd";
 import { WagmiProvider, createConfig, http } from "wagmi";
 import { injected } from "wagmi/connectors";
-import { mainnet } from "wagmi/chains";
+import { mainnet, hardhat } from "wagmi/chains";
 import App from "./App";
 import "./index.css";
 import { AuthProvider } from "./context/AuthContext";
@@ -12,10 +12,11 @@ import { AuthProvider } from "./context/AuthContext";
 const queryClient = new QueryClient();
 
 const config = createConfig({
-  chains: [mainnet],
+  chains: [mainnet, hardhat],
   connectors: [injected()],
   transports: {
     [mainnet.id]: http(),
+    [hardhat.id]: http(),
   },
 });
 

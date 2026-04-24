@@ -1,42 +1,38 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Link } from "react-router-dom";
 import ConnectWallet from "../components/ConnectWallet";
 import { message } from "antd";
-
-const contracts = [
-    {
-        title: "Căn hộ Skyview #402",
-        address: "123 Đường Lê Lợi, Quận 1, TP. HCM",
-        wallet: "0x71C...3aE2",
-        avatarGradient: "from-blue-500 to-purple-500",
-        status: "ACTIVE",
-        rent: "0.4 ETH",
-        deposit: "0.8 ETH",
-        startDate: "15/10/2023",
-        duration: "12 Tháng",
-    },
-    {
-        title: "Studio Minimalist A1",
-        address: "45 Nguyễn Huệ, Quận 1, TP. HCM",
-        wallet: "0x3A2...9F1b",
-        avatarGradient: "from-emerald-500 to-cyan-500",
-        status: "ACTIVE",
-        rent: "0.25 ETH",
-        deposit: "0.5 ETH",
-        startDate: "01/12/2023",
-        duration: "6 Tháng",
-    },
-];
+import { useRentHouse } from "../hooks/useRentHouse";
+import { formatEther } from "viem";
 
 export default function Contracts() {
     const [activeTab, setActiveTab] = useState("myContracts");
+    const { myContracts, traPhong, isWaiting, isSuccess } = useRentHouse();
 
-    const handleCloseContract = () => {
+    const formattedContracts = useMemo(() => {
+        if (!myContracts) return [];
+        return myContracts.map((c: any) => ({
+            id: Number(c.id),
+            title: `Hợp đồng #${c.id} - Phòng ${c.roomId}`,
+            address: "Địa chỉ đã xác thực trên Blockchain",
+            wallet: `${c.landlord.slice(0, 6)}...${c.landlord.slice(-4)}`,
+            avatarGradient: "from-blue-500 to-purple-500",
+            status: ["PENDING", "ACTIVE", "ENDED", "REJECTED"][c.status],
+            rent: `${formatEther(c.rentPrice)} ETH`,
+            deposit: `${formatEther(c.deposit)} ETH`,
+            startDate: "Hợp đồng thông minh",
+            duration: "Vĩnh viễn",
+        }));
+    }, [myContracts]);
+
+    const handleCloseContract = (contractId: number) => {
         message.loading({ content: 'Đang yêu cầu chữ ký từ MetaMask để kết thúc hợp đồng...', key: 'closeTx' });
-        setTimeout(() => {
-            message.success({ content: 'Hợp đồng đã kết thúc! Smart Contract đang hoàn cọc.', key: 'closeTx', duration: 3 });
-        }, 2000);
+        traPhong(contractId);
     };
+
+    if (isSuccess) {
+        message.success({ content: 'Hợp đồng đã kết thúc! Smart Contract đang hoàn cọc.', key: 'closeTx', duration: 3 });
+    }
 
     return (
         <div className="bg-[#0d0d18] text-[#e9e6f7] font-['Inter'] min-h-screen">
@@ -94,9 +90,9 @@ export default function Contracts() {
                 </div>
 
                 {/* Contract Grid */}
-                {activeTab === "myContracts" && contracts.length > 0 && (
+                {activeTab === "myContracts" && formattedContracts.length > 0 && (
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                        {contracts.map((c, i) => (
+                        {formattedContracts.map((c, i) => (
                             <div
                                 key={i}
                                 className="group relative bg-[#12121e] rounded-2xl overflow-hidden hover:scale-[1.01] transition-all duration-300 border border-white/5"
@@ -114,8 +110,8 @@ export default function Contracts() {
                                             </p>
                                         </div>
                                         <div className="flex flex-col items-end gap-2">
-                                            <span className="px-3 py-1 bg-green-500/10 text-green-400 text-xs font-bold rounded-full flex items-center gap-1.5 border border-green-500/20">
-                                                <span className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse"></span>
+                                            <span className={`px-3 py-1 ${c.status === 'ACTIVE' ? 'bg-green-500/10 text-green-400' : 'bg-yellow-500/10 text-yellow-400'} text-xs font-bold rounded-full flex items-center gap-1.5 border border-white/10`}>
+                                                <span className={`w-1.5 h-1.5 ${c.status === 'ACTIVE' ? 'bg-green-400' : 'bg-yellow-400'} rounded-full animate-pulse`}></span>
                                                 {c.status}
                                             </span>
                                             <div className="bg-[#1e1e2d] px-3 py-1 rounded-full flex items-center gap-2">
@@ -152,15 +148,22 @@ export default function Contracts() {
                                     {/* Actions */}
                                     <div className="mt-8 flex items-center gap-4">
                                         <a
-                                            href="#"
+                                            href={`https://etherscan.io/tx/${localStorage.getItem('rent_hash')}`}
+                                            target="_blank"
+                                            rel="noreferrer"
                                             className="flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-[#242434] hover:bg-[#2b2a3c] transition-colors text-sm font-medium border border-white/5"
                                         >
                                             <span className="material-symbols-outlined text-sm">open_in_new</span>
                                             Xem trên Etherscan
                                         </a>
-                                        <button onClick={handleCloseContract} className="flex-1 py-3 px-4 rounded-xl border border-[#474754] hover:border-[#ff6e84] hover:text-[#ff6e84] transition-all text-sm font-medium">
-                                            Kết thúc hợp đồng
-                                        </button>
+                                        {c.status === 'ACTIVE' && (
+                                            <button 
+                                                onClick={() => handleCloseContract(c.id)} 
+                                                className="flex-1 py-3 px-4 rounded-xl border border-[#474754] hover:border-[#ff6e84] hover:text-[#ff6e84] transition-all text-sm font-medium"
+                                            >
+                                                Kết thúc hợp đồng
+                                            </button>
+                                        )}
                                     </div>
                                 </div>
                             </div>
@@ -169,7 +172,7 @@ export default function Contracts() {
                 )}
 
                 {/* Empty State */}
-                {(activeTab === "history" || contracts.length === 0) && (
+                {(activeTab === "history" || formattedContracts.length === 0) && (
                     <div className="flex flex-col items-center justify-center py-24 text-center">
                         <div className="w-64 h-64 mb-8 relative">
                             <div className="absolute inset-0 bg-[#a8a4ff]/10 blur-[100px] rounded-full"></div>
