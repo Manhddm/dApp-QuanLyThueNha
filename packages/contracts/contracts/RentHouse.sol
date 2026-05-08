@@ -1,217 +1,200 @@
 // SPDX-License-Identifier: MIT
-/* 
-- Câu GHI, dùng Storage
-- Câu ĐỌC, truy cập ít field, không cần dùng
-- Câu ĐỌC, truy cập nhiều field, dùng storage
- */
 pragma solidity >=0.8.0 <0.9.0;
 
-contract RentHouse {
-    // Không còn landlord toàn cục — mỗi hợp đồng có landlord riêng
-
+/**
+ * @title RentHousePlatform
+ * @dev Hợp đồng quản lý thuê nhà đa chủ sở hữu (Multi-landlord Platform)
+ */
+contract RentHousePlatform {
+    
     enum Status { Pending, Active, Ended, Rejected }
 
     struct RentalContract {
         uint id;
         uint roomId;
-        address landlord;   // Chủ nhà của phòng đó
+        address landlord;
         address tenant;
         uint rentPrice;
         uint deposit;
         Status status;
     }
 
-    struct PaymentRecord {
-        uint contractId;
-        address tenant;
-        uint roomId;
-        uint rentPrice;
-        bool paid;
+    struct Room {
+        uint id;
+        address owner;
+        string description; // FE có thể lưu thêm mô tả ngắn hoặc link ảnh
+        bool isAvailable;
     }
 
-    uint public contractCount;
-    mapping(uint => RentalContract) public contracts;
-    mapping(uint => mapping(uint => bool)) public paymentTracking;
-    mapping(uint => bool) public phongDaDuocThue; // roomId → đã có người thuê chưa
+    // --- CÁC BIẾN TRẠNG THÁI (STATE VARIABLES) ---
+    uint public roomCount;      // Đếm tổng số phòng trên hệ thống
+    uint public contractCount;  // Đếm tổng số hợp đồng đã tạo
 
-    event RentRequested(uint indexed contractId, address indexed tenant, address indexed landlord, uint roomId, uint deposit);
+    mapping(uint => Room) public rooms; // Quản lý thông tin phòng
+    mapping(uint => RentalContract) public contracts;
+    mapping(uint => mapping(uint => bool)) public paymentTracking; // contractId => thangNam => bool
+    
+    // --- SỰ KIỆN (EVENTS) ---
+    event RoomRegistered(uint indexed roomId, address indexed landlord);
+    event RentRequested(uint indexed contractId, address indexed tenant, uint roomId, uint deposit);
     event RentApproved(uint indexed contractId, address indexed tenant, uint roomId);
     event RentRejected(uint indexed contractId, address indexed tenant, uint depositReturned);
     event RentPaid(uint indexed contractId, address indexed tenant, uint amount, uint thangNam);
     event ContractEnded(uint indexed contractId, address indexed tenant, uint depositReturned);
 
-    constructor() {
-        contractCount = 0;
+    // --- MODIFIERS ---
+    modifier onlyRoomOwner(uint _roomId) {
+        require(rooms[_roomId].owner == msg.sender, "Ban khong phai chu so huu phong nay!");
+        _;
     }
 
-    // Khách thuê gọi hàm này để yêu cầu thuê phòng (kèm tiền cọc)
-    // _landlord: địa chỉ ví của chủ nhà sở hữu phòng đó (lấy từ DB)
-    function thuePhong(uint _roomId, uint _rentPrice, address _landlord) public payable {
-        require(msg.sender != address(0), unicode"Địa chỉ người thuê không hợp lệ !");
-        require(_landlord != address(0), unicode"Địa chỉ chủ nhà không hợp lệ !");
-        require(msg.sender != _landlord, unicode"Chủ nhà không thể tự thuê phòng của mình !");
-        require(msg.value > 0, unicode"Phải gửi kèm tiền cọc !");
+    modifier onlyContractLandlord(uint _contractId) {
+        require(contracts[_contractId].landlord == msg.sender, "Ban khong phai chu nha cua hop dong nay!");
+        _;
+    }
+
+    // --- CHỨC NĂNG CHÍNH ---
+
+    /**
+     * @dev Chủ nhà đăng ký phòng mới lên hệ thống.
+     * ID phòng được tự động tạo dựa trên roomCount.
+     */
+    function dangKyPhong(string memory _description) public {
+        roomCount++;
+        rooms[roomCount] = Room({
+            id: roomCount,
+            owner: msg.sender,
+            description: _description,
+            isAvailable: true
+        });
+
+        emit RoomRegistered(roomCount, msg.sender);
+    }
+
+    /**
+     * @dev Khách thuê gửi yêu cầu thuê một phòng cụ thể.
+     */
+    function thuePhong(uint _roomId, uint _rentPrice) public payable {
+        require(_roomId <= roomCount && _roomId > 0, "Phong khong ton tai!");
+        require(rooms[_roomId].isAvailable, "Phong nay hien khong san sang!");
+        require(msg.sender != rooms[_roomId].owner, "Chu nha khong the thue phong cua chinh minh!");
+        require(msg.value > 0, "Yeu cau tien dat coc!");
 
         contractCount++;
         contracts[contractCount] = RentalContract({
             id: contractCount,
             roomId: _roomId,
-            landlord: _landlord,
+            landlord: rooms[_roomId].owner,
             tenant: msg.sender,
             rentPrice: _rentPrice,
             deposit: msg.value,
             status: Status.Pending
         });
 
-        emit RentRequested(contractCount, msg.sender, _landlord, _roomId, msg.value);
+        emit RentRequested(contractCount, msg.sender, _roomId, msg.value);
     }
 
-    // Chủ nhà duyệt hợp đồng — chỉ chủ nhà của phòng đó mới được duyệt
-    function duyetThuePhong(uint _contractId) public {
-        require(contracts[_contractId].landlord == msg.sender, unicode"Chỉ chủ nhà của phòng này mới được duyệt !");
-        require(contracts[_contractId].status == Status.Pending, unicode"Hợp đồng không ở trạng thái chờ duyệt !");
+    /**
+     * @dev Chủ nhà duyệt yêu cầu thuê.
+     */
+    function duyetThuePhong(uint _contractId) public onlyContractLandlord(_contractId) {
+        RentalContract storage rental = contracts[_contractId];
+        require(rental.status == Status.Pending, "Hop dong khong o trang thai cho duyet!");
+        require(rooms[rental.roomId].isAvailable, "Phong nay da duoc cho thue hoac ngung kinh doanh!");
 
-        uint roomId = contracts[_contractId].roomId;
-        require(!phongDaDuocThue[roomId], unicode"Phòng này đã có người thuê rồi !");
+        rooms[rental.roomId].isAvailable = false; // Đánh dấu phòng đã có người ở
+        rental.status = Status.Active;
 
-        phongDaDuocThue[roomId] = true;
-        contracts[_contractId].status = Status.Active;
-
-        emit RentApproved(_contractId, contracts[_contractId].tenant, roomId);
+        emit RentApproved(_contractId, rental.tenant, rental.roomId);
     }
 
-    // Chủ nhà từ chối yêu cầu thuê — tự động hoàn cọc cho khách
-    function tuChoiThuePhong(uint _contractId) public {
-        require(contracts[_contractId].landlord == msg.sender, unicode"Chỉ chủ nhà của phòng này mới được từ chối !");
-        require(contracts[_contractId].status == Status.Pending, unicode"Hợp đồng không ở trạng thái chờ duyệt !");
+    /**
+     * @dev Chủ nhà từ chối và trả lại tiền cọc cho khách.
+     */
+    function tuChoiThuePhong(uint _contractId) public onlyContractLandlord(_contractId) {
+        RentalContract storage rental = contracts[_contractId];
+        require(rental.status == Status.Pending, "Trang thai khong hop le!");
 
-        contracts[_contractId].status = Status.Rejected;
+        rental.status = Status.Rejected;
+        uint depositToReturn = rental.deposit;
+        rental.deposit = 0;
 
-        uint depositToReturn = contracts[_contractId].deposit;
-        contracts[_contractId].deposit = 0;
+        (bool success, ) = payable(rental.tenant).call{value: depositToReturn}("");
+        require(success, "Hoan tien coc that bai!");
 
-        payable(contracts[_contractId].tenant).transfer(depositToReturn);
-
-        emit RentRejected(_contractId, contracts[_contractId].tenant, depositToReturn);
+        emit RentRejected(_contractId, rental.tenant, depositToReturn);
     }
 
-    // Người thuê thanh toán tiền nhà hàng tháng
+    /**
+     * @dev Khách thanh toán tiền thuê hàng tháng.
+     */
     function thanhToanThang(uint _contractId, uint _thangNam) public payable {
         RentalContract storage rental = contracts[_contractId];
-
-        require(rental.status == Status.Active, unicode"Hợp đồng không đang hoạt động !");
-        require(msg.sender == rental.tenant, unicode"Chỉ người thuê mới được thanh toán !");
-        require(msg.value == rental.rentPrice, unicode"Số tiền không chính xác !");
-        require(!paymentTracking[_contractId][_thangNam], unicode"Tháng này đã thanh toán rồi !");
+        require(rental.status == Status.Active, "Hop dong khong hoat dong!");
+        require(msg.sender == rental.tenant, "Chi nguoi thue moi co the thanh toan!");
+        require(msg.value == rental.rentPrice, "Sai so tien thue!");
+        require(!paymentTracking[_contractId][_thangNam], "Thang nay da thanh toan!");
 
         paymentTracking[_contractId][_thangNam] = true;
-        payable(rental.landlord).transfer(msg.value);
+        
+        (bool success, ) = payable(rental.landlord).call{value: msg.value}("");
+        require(success, "Chuyen tien cho chu nha that bai!");
 
         emit RentPaid(_contractId, msg.sender, msg.value, _thangNam);
     }
 
-    // Người thuê trả phòng — nhận lại tiền cọc
+    /**
+     * @dev Kết thúc hợp đồng (Trả phòng).
+     */
     function traPhong(uint _contractId) public {
         RentalContract storage rental = contracts[_contractId];
-
-        require(rental.status == Status.Active, unicode"Hợp đồng không đang hoạt động !");
-        require(msg.sender == rental.tenant, unicode"Chỉ người thuê mới được trả phòng !");
+        require(rental.status == Status.Active, "Hop dong khong hoat dong!");
+        require(msg.sender == rental.tenant || msg.sender == rental.landlord, "Khong co quyen!");
 
         rental.status = Status.Ended;
-
+        rooms[rental.roomId].isAvailable = true; // Mở lại trạng thái phòng trống
+        
         uint depositToReturn = rental.deposit;
         rental.deposit = 0;
 
-        payable(msg.sender).transfer(depositToReturn);
+        (bool success, ) = payable(rental.tenant).call{value: depositToReturn}("");
+        require(success, "Hoan tien coc that bai!");
 
-        emit ContractEnded(_contractId, msg.sender, depositToReturn);
+        emit ContractEnded(_contractId, rental.tenant, depositToReturn);
     }
 
-    // Người thuê xem hợp đồng của mình
-    function xemHopDong() public view returns (RentalContract[] memory) {
+    // --- CÁC HÀM VIEW HỖ TRỢ FRONTEND ---
+
+    /**
+     * @dev Lấy danh sách tất cả các phòng hiện có (Để hiển thị trang chủ).
+     */
+    function xemTatCaPhong() public view returns (Room[] memory) {
+        Room[] memory allRooms = new Room[](roomCount);
+        for (uint i = 1; i <= roomCount; i++) {
+            allRooms[i - 1] = rooms[i];
+        }
+        return allRooms;
+    }
+
+    /**
+     * @dev Lấy tất cả hợp đồng liên quan đến địa chỉ ví đang kết nối.
+     */
+    function xemHopDongCuaToi() public view returns (RentalContract[] memory) {
         uint count = 0;
         for (uint i = 1; i <= contractCount; i++) {
-            if (contracts[i].tenant == msg.sender) count++;
-        }
-        RentalContract[] memory myContracts = new RentalContract[](count);
-        uint index = 0;
-        for (uint i = 1; i <= contractCount; i++) {
-            if (contracts[i].tenant == msg.sender) {
-                myContracts[index++] = contracts[i];
+            if (contracts[i].tenant == msg.sender || contracts[i].landlord == msg.sender) {
+                count++;
             }
         }
-        return myContracts;
-    }
 
-    // Chủ nhà xem tất cả hợp đồng của phòng mình
-    function danhSachHopDong() public view returns (RentalContract[] memory) {
-        uint count = 0;
-        for (uint i = 1; i <= contractCount; i++) {
-            if (contracts[i].landlord == msg.sender) count++;
-        }
-        RentalContract[] memory myContracts = new RentalContract[](count);
+        RentalContract[] memory result = new RentalContract[](count);
         uint index = 0;
         for (uint i = 1; i <= contractCount; i++) {
-            if (contracts[i].landlord == msg.sender) {
-                myContracts[index++] = contracts[i];
+            if (contracts[i].tenant == msg.sender || contracts[i].landlord == msg.sender) {
+                result[index] = contracts[i];
+                index++;
             }
         }
-        return myContracts;
-    }
-
-    // Chủ nhà xem hợp đồng đang chờ duyệt của phòng mình
-    function danhSachChoDuyet() public view returns (RentalContract[] memory) {
-        uint count = 0;
-        for (uint i = 1; i <= contractCount; i++) {
-            if (contracts[i].landlord == msg.sender && contracts[i].status == Status.Pending) count++;
-        }
-        RentalContract[] memory pendingContracts = new RentalContract[](count);
-        uint index = 0;
-        for (uint i = 1; i <= contractCount; i++) {
-            if (contracts[i].landlord == msg.sender && contracts[i].status == Status.Pending) {
-                pendingContracts[index++] = contracts[i];
-            }
-        }
-        return pendingContracts;
-    }
-
-    // ===================== THEO DÕI THANH TOÁN =====================
-
-    function kiemTraThanhToan(uint _contractId, uint _thangNam) public view returns (bool) {
-        return paymentTracking[_contractId][_thangNam];
-    }
-
-    // Chủ nhà xem theo dõi thanh toán tháng của các HĐ Active thuộc phòng mình
-    function theoDoiThanhToan(uint _thangNam) public view returns (PaymentRecord[] memory) {
-        uint count = 0;
-        for (uint i = 1; i <= contractCount; i++) {
-            if (contracts[i].landlord == msg.sender && contracts[i].status == Status.Active) count++;
-        }
-        PaymentRecord[] memory records = new PaymentRecord[](count);
-        uint index = 0;
-        for (uint i = 1; i <= contractCount; i++) {
-            if (contracts[i].landlord == msg.sender && contracts[i].status == Status.Active) {
-                records[index++] = PaymentRecord({
-                    contractId: contracts[i].id,
-                    tenant: contracts[i].tenant,
-                    roomId: contracts[i].roomId,
-                    rentPrice: contracts[i].rentPrice,
-                    paid: paymentTracking[i][_thangNam]
-                });
-            }
-        }
-        return records;
-    }
-
-    // Người thuê / chủ nhà xem lịch sử thanh toán
-    function xemLichSuThanhToan(uint _contractId, uint[] memory _danhSachThang) public view returns (bool[] memory) {
-        RentalContract storage rental = contracts[_contractId];
-        require(msg.sender == rental.tenant || msg.sender == rental.landlord, unicode"Không có quyền xem !");
-
-        bool[] memory results = new bool[](_danhSachThang.length);
-        for (uint i = 0; i < _danhSachThang.length; i++) {
-            results[i] = paymentTracking[_contractId][_danhSachThang[i]];
-        }
-        return results;
+        return result;
     }
 }
