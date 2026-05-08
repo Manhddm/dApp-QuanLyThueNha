@@ -57,8 +57,13 @@ export const createBatDongSan = async (req: AuthRequest, res: Response, next: Ne
     const newBds = await createBatDongSanService({
       ma_chu_so_huu: userId,
       ten, dia_chi, thanh_pho, quan_huyen, phuong_xa, mo_ta, loai_bat_dong_san,
-      dien_tich, gia_thue, tien_dat_coc, trang_thai, tien_nghi, so_nguoi_toi_da,
-      vi_do, kinh_do
+      dien_tich: Number(dien_tich), 
+      gia_thue: Number(gia_thue), 
+      tien_dat_coc: Number(tien_dat_coc), 
+      trang_thai, tien_nghi, 
+      so_nguoi_toi_da: Number(so_nguoi_toi_da || 2),
+      vi_do: vi_do ? Number(vi_do) : undefined, 
+      kinh_do: kinh_do ? Number(kinh_do) : undefined
     }, userId, role);
 
     res.status(201).json({ success: true, message: "Tạo mới Bất động sản thành công", data: newBds });
@@ -85,7 +90,13 @@ export const updateBatDongSan = async (req: AuthRequest, res: Response, next: Ne
       return;
     }
 
-    const updatedBds = await updateBatDongSanService(id, req.body, userId, role);
+    const updateData = { ...req.body };
+    if (updateData.dien_tich) updateData.dien_tich = Number(updateData.dien_tich);
+    if (updateData.gia_thue) updateData.gia_thue = Number(updateData.gia_thue);
+    if (updateData.tien_dat_coc) updateData.tien_dat_coc = Number(updateData.tien_dat_coc);
+    if (updateData.so_nguoi_toi_da) updateData.so_nguoi_toi_da = Number(updateData.so_nguoi_toi_da);
+
+    const updatedBds = await updateBatDongSanService(id, updateData, userId, role);
     res.json({ success: true, message: "Cập nhật thành công", data: updatedBds });
   } catch (err: any) {
     if (err.message === "Không tìm thấy bất động sản") {

@@ -1,213 +1,122 @@
-import { useState, useMemo } from "react";
 import { Link } from "react-router-dom";
-import ConnectWallet from "../components/ConnectWallet";
-import { message } from "antd";
-import { useRentHouse } from "../hooks/useRentHouse";
-import { formatEther } from "viem";
+import { FileSignature, AlertCircle, ArrowRight, CheckCircle2 } from "lucide-react";
 
 export default function Contracts() {
-    const [activeTab, setActiveTab] = useState("myContracts");
-    const { myContracts, traPhong, isWaiting, isSuccess } = useRentHouse();
-
-    const formattedContracts = useMemo(() => {
-        if (!myContracts) return [];
-        return myContracts.map((c: any) => ({
-            id: Number(c.id),
-            title: `Hợp đồng #${c.id} - Phòng ${c.roomId}`,
-            address: "Địa chỉ đã xác thực trên Blockchain",
-            wallet: `${c.landlord.slice(0, 6)}...${c.landlord.slice(-4)}`,
-            avatarGradient: "from-blue-500 to-purple-500",
-            status: ["PENDING", "ACTIVE", "ENDED", "REJECTED"][c.status],
-            rent: `${formatEther(c.rentPrice)} ETH`,
-            deposit: `${formatEther(c.deposit)} ETH`,
-            startDate: "Hợp đồng thông minh",
-            duration: "Vĩnh viễn",
-        }));
-    }, [myContracts]);
-
-    const handleCloseContract = (contractId: number) => {
-        message.loading({ content: 'Đang yêu cầu chữ ký từ MetaMask để kết thúc hợp đồng...', key: 'closeTx' });
-        traPhong(contractId);
-    };
-
-    if (isSuccess) {
-        message.success({ content: 'Hợp đồng đã kết thúc! Smart Contract đang hoàn cọc.', key: 'closeTx', duration: 3 });
-    }
+    const contracts = [
+        {
+            id: "CT-82FA-11X",
+            roomName: "Skyline Loft Premium",
+            address: "88 Đường Lê Lợi, Quận 1, TP.HCM",
+            startDate: "01/05/2024",
+            endDate: "01/05/2025",
+            rentAmount: "0.85 ETH",
+            status: "Active",
+            nextPayment: "05/06/2024",
+            contractAddress: "0x3B6C908aD3aF21b7C118B80e608E986D58c44A2D"
+        },
+        {
+            id: "CT-44A3-92Y",
+            roomName: "The Minimalist Pad",
+            address: "45 Lê Văn Sỹ, Quận 3, TP.HCM",
+            startDate: "15/02/2023",
+            endDate: "15/02/2024",
+            rentAmount: "0.32 ETH",
+            status: "Completed",
+            nextPayment: null,
+            contractAddress: "0x9F2E...1B9C"
+        }
+    ];
 
     return (
-        <div className="bg-[#0d0d18] text-[#e9e6f7] font-['Inter'] min-h-screen">
-
-            {/* Navbar */}
-            <nav className="bg-[#0d0d18]/80 backdrop-blur-xl sticky top-0 z-50 shadow-[0px_20px_40px_rgba(0,0,0,0.4)]">
-                <div className="flex justify-between items-center w-full px-8 py-4 max-w-7xl mx-auto">
-                    <div className="text-2xl font-bold text-[#e9e6f7] tracking-tighter font-['Space_Grotesk']">
-                        QuanLyThueNha
-                    </div>
-                    <div className="hidden md:flex items-center gap-8 font-['Space_Grotesk'] tracking-tight">
-                        <Link to="/" className="text-[#e9e6f7]/60 hover:text-[#e9e6f7] hover:bg-white/5 transition-all duration-300 px-3 py-1 rounded-lg">Home</Link>
-                        <Link to="/rooms" className="text-[#e9e6f7]/60 hover:text-[#e9e6f7] hover:bg-white/5 transition-all duration-300 px-3 py-1 rounded-lg">Danh sách phòng</Link>
-                        <Link to="/contracts" className="text-[#a8a4ff] border-b-2 border-[#a8a4ff] pb-1 px-3 py-1">Hợp đồng</Link>
-                        <Link to="/dashboard" className="text-[#e9e6f7]/60 hover:text-[#e9e6f7] hover:bg-white/5 transition-all duration-300 px-3 py-1 rounded-lg">Dashboard</Link>
-                    </div>
-                    <div className="flex items-center gap-4">
-                        <ConnectWallet className="px-6 py-2" />
-                    </div>
-                </div>
-            </nav>
-
-            <main className="max-w-7xl mx-auto px-8 py-12 min-h-screen">
-
-                {/* Header */}
-                <header className="mb-12">
-                    <h1 className="font-['Space_Grotesk'] text-5xl font-bold tracking-tight mb-4 bg-gradient-to-br from-[#e9e6f7] to-[#aba9b9] bg-clip-text text-transparent">
-                        Quản lý Hợp đồng
+        <div className="max-w-7xl mx-auto px-6 md:px-8 py-12 w-full">
+            <header className="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-6">
+                <div>
+                    <h1 className="font-headline text-4xl md:text-5xl font-bold mb-4 tracking-tighter text-on-background">
+                        Hợp Đồng Của Tôi
                     </h1>
-                    <p className="text-[#aba9b9] max-w-2xl text-lg">
-                        Theo dõi các giao dịch thuê phòng và trạng thái pháp lý trên chuỗi khối của bạn một cách minh bạch và an toàn.
+                    <p className="text-on-surface-variant max-w-xl">
+                        Quản lý các hợp đồng thuê nhà dạng Smart Contract. An toàn, minh bạch
+                        và tự động tự động hóa trên blockchain.
                     </p>
-                </header>
-
-                {/* Tab Switcher */}
-                <div className="flex items-center gap-2 p-1 bg-[#12121e] rounded-xl w-fit mb-10">
-                    <button
-                        onClick={() => setActiveTab("myContracts")}
-                        className={`px-6 py-2.5 rounded-lg font-medium transition-all ${activeTab === "myContracts"
-                            ? "bg-[#1e1e2d] text-[#a8a4ff] shadow-sm"
-                            : "text-[#aba9b9] hover:text-[#e9e6f7]"
-                            }`}
-                    >
-                        Hợp đồng của tôi
-                    </button>
-                    <button
-                        onClick={() => setActiveTab("history")}
-                        className={`px-6 py-2.5 rounded-lg font-medium transition-all ${activeTab === "history"
-                            ? "bg-[#1e1e2d] text-[#a8a4ff] shadow-sm"
-                            : "text-[#aba9b9] hover:text-[#e9e6f7]"
-                            }`}
-                    >
-                        Lịch sử
-                    </button>
                 </div>
+                <button className="bg-surface-container-high border border-white/10 hover:border-white/20 text-on-surface px-6 py-3 rounded-xl font-label font-bold uppercase tracking-wider text-sm transition-all flex items-center justify-center gap-2">
+                    <FileSignature size={18} />
+                    Lịch Sử Ký Kết
+                </button>
+            </header>
 
-                {/* Contract Grid */}
-                {activeTab === "myContracts" && formattedContracts.length > 0 && (
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                        {formattedContracts.map((c, i) => (
-                            <div
-                                key={i}
-                                className="group relative bg-[#12121e] rounded-2xl overflow-hidden hover:scale-[1.01] transition-all duration-300 border border-white/5"
-                            >
-                                <div className="absolute inset-0 bg-gradient-to-br from-[#a8a4ff]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                                <div className="p-8 relative z-10">
+            <div className="space-y-6">
+                {contracts.map((contract, index) => {
+                    const isActive = contract.status === "Active";
+                    return (
+                        <div key={index} className="glass-panel p-6 md:p-8 rounded-2xl relative overflow-hidden flex flex-col md:flex-row gap-8 items-start md:items-center">
+                            {/* Left Status Indicator Accent */}
+                            {isActive && (
+                                <div className="absolute left-0 top-0 bottom-0 w-1 bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.5)]"></div>
+                            )}
 
-                                    {/* Card Header */}
-                                    <div className="flex justify-between items-start mb-6">
-                                        <div className="space-y-1">
-                                            <h3 className="font-['Space_Grotesk'] text-2xl font-bold">{c.title}</h3>
-                                            <p className="text-[#aba9b9] text-sm flex items-center gap-2">
-                                                <span className="material-symbols-outlined text-sm">location_on</span>
-                                                {c.address}
-                                            </p>
-                                        </div>
-                                        <div className="flex flex-col items-end gap-2">
-                                            <span className={`px-3 py-1 ${c.status === 'ACTIVE' ? 'bg-green-500/10 text-green-400' : 'bg-yellow-500/10 text-yellow-400'} text-xs font-bold rounded-full flex items-center gap-1.5 border border-white/10`}>
-                                                <span className={`w-1.5 h-1.5 ${c.status === 'ACTIVE' ? 'bg-green-400' : 'bg-yellow-400'} rounded-full animate-pulse`}></span>
-                                                {c.status}
-                                            </span>
-                                            <div className="bg-[#1e1e2d] px-3 py-1 rounded-full flex items-center gap-2">
-                                                <span className="font-mono text-[10px] text-[#aba9b9]">{c.wallet}</span>
-                                                <div className={`w-4 h-4 rounded-full bg-gradient-to-tr ${c.avatarGradient}`}></div>
-                                            </div>
-                                        </div>
+                            <div className="flex-1 w-full text-left">
+                                <div className="flex flex-wrap items-center gap-3 mb-3">
+                                    <span className="font-mono text-sm font-bold text-on-surface">{contract.id}</span>
+                                    <span className={`px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest rounded-md border ${isActive ? "bg-green-500/10 text-green-400 border-green-500/20" : "bg-surface-container text-on-surface-variant border-white/5"
+                                        }`}>
+                                        {contract.status}
+                                    </span>
+                                </div>
+                                <h3 className="text-2xl font-headline font-bold mb-1">{contract.roomName}</h3>
+                                <p className="text-sm text-on-surface-variant mb-6">{contract.address}</p>
+
+                                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 bg-surface-container-low p-4 rounded-xl border border-white/5">
+                                    <div>
+                                        <p className="text-[10px] uppercase font-bold tracking-widest text-on-surface-variant mb-1">Thời gian</p>
+                                        <p className="text-sm font-medium text-on-surface">{contract.startDate} - {contract.endDate}</p>
                                     </div>
-
-                                    {/* Rent & Deposit */}
-                                    <div className="grid grid-cols-2 gap-6 mb-8">
-                                        <div className="bg-[#181826]/50 p-4 rounded-xl border border-white/5">
-                                            <p className="text-[10px] uppercase tracking-widest text-[#aba9b9] mb-1">Monthly Rent</p>
-                                            <p className="text-xl font-['Space_Grotesk'] font-bold text-[#a8a4ff]">{c.rent}</p>
-                                        </div>
-                                        <div className="bg-[#181826]/50 p-4 rounded-xl border border-white/5">
-                                            <p className="text-[10px] uppercase tracking-widest text-[#aba9b9] mb-1">Deposit Locked</p>
-                                            <p className="text-xl font-['Space_Grotesk'] font-bold text-[#aa8ffd]">{c.deposit}</p>
-                                        </div>
+                                    <div>
+                                        <p className="text-[10px] uppercase font-bold tracking-widest text-on-surface-variant mb-1">Tiền thuê</p>
+                                        <p className="font-mono text-sm font-bold text-primary">{contract.rentAmount}/tháng</p>
                                     </div>
-
-                                    {/* Details */}
-                                    <div className="flex flex-col space-y-4 text-sm text-[#aba9b9] border-t border-white/5 pt-6">
-                                        <div className="flex justify-between items-center">
-                                            <span>Ngày bắt đầu</span>
-                                            <span className="text-[#e9e6f7] font-medium">{c.startDate}</span>
-                                        </div>
-                                        <div className="flex justify-between items-center">
-                                            <span>Thời hạn hợp đồng</span>
-                                            <span className="text-[#e9e6f7] font-medium">{c.duration}</span>
-                                        </div>
+                                    <div>
+                                        <p className="text-[10px] uppercase font-bold tracking-widest text-on-surface-variant mb-1">Trạng thái</p>
+                                        <p className="text-sm font-medium flex items-center gap-1.5 opacity-90">
+                                            {isActive ? <><CheckCircle2 size={14} className="text-green-500" /> Đang thuê</> : "Đã kết thúc"}
+                                        </p>
                                     </div>
-
-                                    {/* Actions */}
-                                    <div className="mt-8 flex items-center gap-4">
-                                        <a
-                                            href={`https://etherscan.io/tx/${localStorage.getItem('rent_hash')}`}
-                                            target="_blank"
-                                            rel="noreferrer"
-                                            className="flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-[#242434] hover:bg-[#2b2a3c] transition-colors text-sm font-medium border border-white/5"
-                                        >
-                                            <span className="material-symbols-outlined text-sm">open_in_new</span>
-                                            Xem trên Etherscan
-                                        </a>
-                                        {c.status === 'ACTIVE' && (
-                                            <button 
-                                                onClick={() => handleCloseContract(c.id)} 
-                                                className="flex-1 py-3 px-4 rounded-xl border border-[#474754] hover:border-[#ff6e84] hover:text-[#ff6e84] transition-all text-sm font-medium"
-                                            >
-                                                Kết thúc hợp đồng
-                                            </button>
-                                        )}
+                                    <div>
+                                        <p className="text-[10px] uppercase font-bold tracking-widest text-on-surface-variant mb-1">Smart Contract</p>
+                                        <p className="font-mono text-xs text-secondary/80 truncate w-32" title={contract.contractAddress}>
+                                            {contract.contractAddress}
+                                        </p>
                                     </div>
                                 </div>
                             </div>
-                        ))}
-                    </div>
-                )}
 
-                {/* Empty State */}
-                {(activeTab === "history" || formattedContracts.length === 0) && (
-                    <div className="flex flex-col items-center justify-center py-24 text-center">
-                        <div className="w-64 h-64 mb-8 relative">
-                            <div className="absolute inset-0 bg-[#a8a4ff]/10 blur-[100px] rounded-full"></div>
-                            <img
-                                alt="Empty illustration"
-                                className="relative z-10 opacity-60"
-                                src="https://lh3.googleusercontent.com/aida-public/AB6AXuBV2J4J37kzzkhGmoGwLe7-bLmnhQJLZEYfcnRkQKAwVEh2DMyBO4wrpn6DxrXpuLe6rFisa3ri_os7yd0abqrthAe4c6f-lxEQ5E-aKrgNUdaDDPDq32cDmTHj6ltLs91wcJUaKQBGo2CBkWwDkKzGcUpaprtItIFG2T7vXia9-ByB_oNMkwibh7IHO1IQFGLE0yNiXq01j5nZU6v08bInFhgqWZPfLOiBSvlXJ_eCdhq1hQcEuh3BSZ9nYsWAv36ywCJri05deb8"
-                            />
+                            {/* Right Actions Pane */}
+                            <div className="w-full md:w-64 shrink-0 flex flex-col md:items-end justify-center pt-6 z-10 md:pt-0 border-t md:border-t-0 md:border-l border-white/5 md:pl-8">
+                                {isActive ? (
+                                    <>
+                                        <div className="text-left md:text-right mb-6 w-full flex md:flex-col justify-between md:justify-start items-center md:items-end">
+                                            <p className="text-xs uppercase font-bold tracking-widest text-on-surface-variant mb-1 flex items-center md:justify-end gap-1.5">
+                                                <AlertCircle size={14} className="text-tertiary" /> Kỳ thanh toán tới
+                                            </p>
+                                            <p className="font-medium text-lg">{contract.nextPayment}</p>
+                                        </div>
+                                        <Link
+                                            to={`/pay/${contract.id}`}
+                                            className="w-full bg-gradient-to-r text-center from-primary to-primary-dim text-on-primary-fixed py-3.5 rounded-xl font-label text-sm font-bold uppercase tracking-wider hover:shadow-[0_0_20px_rgba(168,164,255,0.3)] transition-all flex items-center justify-center gap-2"
+                                        >
+                                            Thanh toán ETH <ArrowRight size={16} />
+                                        </Link>
+                                    </>
+                                ) : (
+                                    <button className="w-full bg-surface-container-highest border border-white/10 text-on-surface-variant py-3.5 rounded-xl font-label text-sm font-bold uppercase tracking-wider hover:bg-white/5 hover:text-on-surface transition-all">
+                                        Xem Chi Tiết
+                                    </button>
+                                )}
+                            </div>
                         </div>
-                        <h2 className="text-3xl font-['Space_Grotesk'] font-bold mb-4">Chưa có hợp đồng nào</h2>
-                        <p className="text-[#aba9b9] mb-8 max-w-sm">
-                            Bắt đầu thuê phòng hoặc đăng tin cho thuê để khởi tạo hợp đồng thông minh đầu tiên của bạn.
-                        </p>
-                        <Link to="/rooms">
-                            <button className="bg-[#a8a4ff] text-black px-8 py-3 rounded-xl font-bold flex items-center gap-2 hover:shadow-[0_0_30px_rgba(168,164,255,0.3)] transition-all">
-                                <span className="material-symbols-outlined">explore</span>
-                                Khám phá ngay
-                            </button>
-                        </Link>
-                    </div>
-                )}
-            </main>
-
-            {/* Footer */}
-            <footer className="bg-[#0d0d18] w-full py-12 border-t border-white/5 mt-20">
-                <div className="flex flex-col md:flex-row justify-between items-center px-8 max-w-7xl mx-auto gap-6 text-sm uppercase tracking-widest">
-                    <div className="text-xl font-bold text-[#e9e6f7]">QuanLyThueNha</div>
-                    <div className="text-[#e9e6f7]/40">© 2024 QuanLyThueNha.</div>
-                    <div className="flex gap-8">
-                        {["Etherscan", "Discord", "Twitter", "Terms of Service"].map((l) => (
-                            <a key={l} href="#" className="text-[#e9e6f7]/40 hover:text-[#aa8ffd] transition-colors">{l}</a>
-                        ))}
-                    </div>
-                </div>
-            </footer>
+                    );
+                })}
+            </div>
         </div>
     );
 }

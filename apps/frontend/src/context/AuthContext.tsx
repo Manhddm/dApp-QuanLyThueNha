@@ -6,6 +6,7 @@ export interface User {
   ho_ten: string;
   email: string;
   vai_tro: string;
+  dia_chi_vi?: string;
   da_xac_thuc?: boolean;
 }
 

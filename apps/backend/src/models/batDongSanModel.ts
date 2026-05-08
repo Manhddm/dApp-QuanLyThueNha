@@ -71,14 +71,20 @@ export const getAllBatDongSan = async (
   return result.rows;
 };
 
-// Lấy chi tiết BĐS
-export const getBatDongSanById = async (id: number): Promise<BatDongSan | null> => {
-  const result = await pool.query<BatDongSan>(
-    `SELECT * FROM bat_dong_san WHERE ma_bat_dong_san = $1`,
+// Lấy chi tiết BĐS kèm ví chủ nhà
+export const getBatDongSanById = async (id: number): Promise<any | null> => {
+  const result = await pool.query<any>(
+    `SELECT b.*, n.dia_chi_vi as vi_chu_nha 
+     FROM bat_dong_san b 
+     JOIN nguoi_dung n ON b.ma_chu_so_huu = n.ma_nguoi_dung 
+     WHERE b.ma_bat_dong_san = $1`,
     [id]
   );
   return result.rows[0] || null;
 };
+
+// Alias for compatibility
+export const findBatDongSanById = getBatDongSanById;
 
 // Tạo BĐS mới
 export const createBatDongSan = async (data: CreateBatDongSanDTO): Promise<BatDongSan> => {
@@ -89,8 +95,8 @@ export const createBatDongSan = async (data: CreateBatDongSanDTO): Promise<BatDo
        vi_do, kinh_do, ngay_tao, ngay_cap_nhat)
      VALUES 
       ($1, $2, $3, $4, $5, $6, $7, COALESCE($8, 'nha_o'), 
-       COALESCE($9, 0), COALESCE($10, 0), COALESCE($11, 0), COALESCE($12, 'trong'), $13, COALESCE($14, 2),
-       $15, $16, NOW(), NOW())
+       COALESCE($9, 0::NUMERIC), COALESCE($10, 0::NUMERIC), COALESCE($11, 0::NUMERIC), COALESCE($12, 'trong'), $13, COALESCE($14, 2),
+       $15::NUMERIC, $16::NUMERIC, NOW(), NOW())
      RETURNING *`,
     [
       data.ma_chu_so_huu,
@@ -131,9 +137,9 @@ export const updateBatDongSan = async (
   if (data.mo_ta !== undefined) { fields.push(`mo_ta = $${idx++}`); values.push(data.mo_ta); }
   if (data.loai_bat_dong_san) { fields.push(`loai_bat_dong_san = $${idx++}`); values.push(data.loai_bat_dong_san); }
   
-  if (data.dien_tich !== undefined) { fields.push(`dien_tich = $${idx++}`); values.push(data.dien_tich); }
-  if (data.gia_thue !== undefined) { fields.push(`gia_thue = $${idx++}`); values.push(data.gia_thue); }
-  if (data.tien_dat_coc !== undefined) { fields.push(`tien_dat_coc = $${idx++}`); values.push(data.tien_dat_coc); }
+  if (data.dien_tich !== undefined) { fields.push(`dien_tich = $${idx++}::NUMERIC`); values.push(data.dien_tich); }
+  if (data.gia_thue !== undefined) { fields.push(`gia_thue = $${idx++}::NUMERIC`); values.push(data.gia_thue); }
+  if (data.tien_dat_coc !== undefined) { fields.push(`tien_dat_coc = $${idx++}::NUMERIC`); values.push(data.tien_dat_coc); }
   if (data.trang_thai) { fields.push(`trang_thai = $${idx++}`); values.push(data.trang_thai); }
   if (data.tien_nghi !== undefined) { fields.push(`tien_nghi = $${idx++}`); values.push(data.tien_nghi ? JSON.stringify(data.tien_nghi) : null); }
   if (data.so_nguoi_toi_da !== undefined) { fields.push(`so_nguoi_toi_da = $${idx++}`); values.push(data.so_nguoi_toi_da); }

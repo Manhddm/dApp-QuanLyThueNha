@@ -14,12 +14,12 @@ export function useRentHouse() {
 
   // --- WRITE FUNCTIONS ---
 
-  const thuePhong = (roomId: number, rentPrice: bigint, deposit: bigint) => {
+  const thuePhong = (roomId: number, rentPrice: bigint, deposit: bigint, landlordAddress: `0x${string}`) => {
     return writeContract({
       address: rentHouseAddress,
       abi: RentHouseABI,
       functionName: 'thuePhong',
-      args: [BigInt(roomId), rentPrice],
+      args: [BigInt(roomId), rentPrice, landlordAddress],
       value: deposit,
     });
   };
@@ -29,6 +29,15 @@ export function useRentHouse() {
       address: rentHouseAddress,
       abi: RentHouseABI,
       functionName: 'duyetThuePhong',
+      args: [BigInt(contractId)],
+    });
+  };
+
+  const tuChoiThuePhong = (contractId: number) => {
+    return writeContract({
+      address: rentHouseAddress,
+      abi: RentHouseABI,
+      functionName: 'tuChoiThuePhong',
       args: [BigInt(contractId)],
     });
   };
@@ -68,6 +77,13 @@ export function useRentHouse() {
     account: userAddress,
   });
 
+  const { data: pendingContracts, refetch: refetchPending } = useReadContract({
+    address: rentHouseAddress,
+    abi: RentHouseABI,
+    functionName: 'danhSachChoDuyet',
+    account: userAddress,
+  });
+
   return {
     // Actions
     thuePhong,
@@ -79,6 +95,8 @@ export function useRentHouse() {
     allContracts: allContracts as any[],
     refetchMyContracts,
     refetchAllContracts,
+    pendingContracts: pendingContracts as any[],
+    refetchPending: refetchPending,
     // Status
     hash,
     isPending,

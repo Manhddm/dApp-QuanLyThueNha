@@ -1,32 +1,36 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+/**
+ * @license
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import BaseLayout from "./components/layout/BaseLayout";
 import Home from "./pages/Home";
-import RoomList from "./pages/RoomList";
+import Rooms from "./pages/Rooms";
 import RoomDetail from "./pages/RoomDetail";
 import Contracts from "./pages/Contracts";
 import Dashboard from "./pages/Dashboard";
-import Payment from "./pages/Payment";
-import AccessDenied from "./pages/AccessDenied";
+import PayRent from "./pages/PayRent";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
-import Profile from "./pages/Profile";
 
-function App() {
+export default function App() {
   return (
-    <Router>
+    <BrowserRouter>
       <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/rooms" element={<RoomList />} />
-        <Route path="/rooms/:id" element={<RoomDetail />} />
-        <Route path="/contracts" element={<Contracts />} />
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/payment" element={<Payment />} />
-        <Route path="/access-denied" element={<AccessDenied />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
-        <Route path="/profile" element={<Profile />} />
+        <Route path="/" element={<Navigate to="/login" replace />} />
+
+        <Route element={<BaseLayout />}>
+          <Route path="/home" element={<Home />} />
+          <Route path="/rooms" element={<Rooms />} />
+          <Route path="/rooms/:id" element={<RoomDetail />} />
+          <Route path="/contracts" element={<Contracts />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/pay/:id" element={<PayRent />} />
+        </Route>
       </Routes>
-    </Router>
+    </BrowserRouter>
   );
 }
-
-export default App;

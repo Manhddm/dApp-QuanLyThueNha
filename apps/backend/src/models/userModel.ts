@@ -38,8 +38,17 @@ export const findUserByEmail = async (email: string): Promise<NguoiDung | null> 
 // Tìm người dùng theo ID
 export const findUserById = async (id: number): Promise<NguoiDung | null> => {
   const result = await pool.query<NguoiDung>(
-    "SELECT ma_nguoi_dung, ho_ten, email, so_dien_thoai, vai_tro, da_xac_thuc, dang_hoat_dong, anh_dai_dien, ngay_tao FROM nguoi_dung WHERE ma_nguoi_dung = $1",
+    "SELECT ma_nguoi_dung, ho_ten, email, so_dien_thoai, vai_tro, da_xac_thuc, dang_hoat_dong, anh_dai_dien, dia_chi_vi, ngay_tao FROM nguoi_dung WHERE ma_nguoi_dung = $1",
     [id]
+  );
+  return result.rows[0] || null;
+};
+
+// Tìm người dùng theo địa chỉ ví
+export const findUserByWallet = async (walletAddress: string): Promise<NguoiDung | null> => {
+  const result = await pool.query<NguoiDung>(
+    "SELECT * FROM nguoi_dung WHERE LOWER(dia_chi_vi) = LOWER($1) AND dang_hoat_dong = true",
+    [walletAddress]
   );
   return result.rows[0] || null;
 };

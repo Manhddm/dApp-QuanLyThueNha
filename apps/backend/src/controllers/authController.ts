@@ -48,6 +48,41 @@ export const login = async (req: Request, res: Response, next: NextFunction) => 
   }
 };
 
+// POST /api/auth/wallet-login
+export const walletLogin = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { dia_chi_vi } = req.body;
+
+    if (!dia_chi_vi) {
+      res.status(400).json({ success: false, message: "Thiếu địa chỉ ví" });
+      return;
+    }
+
+    const { findUserByWallet } = require("../models/userModel");
+    const jwt = require("jsonwebtoken");
+
+    const user = await findUserByWallet(dia_chi_vi);
+    if (!user) {
+      res.status(404).json({ success: false, message: "Địa chỉ ví này chưa được đăng ký trong hệ thống" });
+      return;
+    }
+
+    const token = jwt.sign(
+      { ma_nguoi_dung: user.ma_nguoi_dung, email: user.email, vai_tro: user.vai_tro },
+      process.env.JWT_SECRET || "bi_mat_vinh_cuu",
+      { expiresIn: "24h" }
+    );
+
+    res.json({
+      success: true,
+      message: "Đăng nhập bằng ví thành công",
+      data: { token, user },
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
 // GET /api/auth/me - Lấy thông tin bản thân (cần token)
 export const getMe = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {

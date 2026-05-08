@@ -6,14 +6,9 @@ async function main() {
   const [deployer] = await hre.ethers.getSigners();
   console.log("Deploying with account:", deployer.address);
 
-  // 1. Deploy AppToken
-  const AppToken = await hre.ethers.getContractFactory("AppToken");
-  const token = await AppToken.deploy(deployer.address);
-  await token.waitForDeployment();
-  const tokenAddress = await token.getAddress();
-  console.log("AppToken deployed to:", tokenAddress);
+  const tokenAddress = "0x0000000000000000000000000000000000000000";
+  console.log("AppToken: skipped (no contract body yet)");
 
-  // 2. Deploy RentHouse
   const RentHouse = await hre.ethers.getContractFactory("RentHouse");
   const rentHouse = await RentHouse.deploy();
   await rentHouse.waitForDeployment();
@@ -27,14 +22,9 @@ async function main() {
   if (!fs.existsSync(sharedAbiDir)) fs.mkdirSync(sharedAbiDir, { recursive: true });
   if (!fs.existsSync(sharedAddressDir)) fs.mkdirSync(sharedAddressDir, { recursive: true });
 
-  // Export ABIs
-  const tokenArtifact = await hre.artifacts.readArtifact("AppToken");
+  // Export ABIs — chỉ RentHouse
   const rentHouseArtifact = await hre.artifacts.readArtifact("RentHouse");
 
-  fs.writeFileSync(
-    path.join(sharedAbiDir, "AppToken.json"),
-    JSON.stringify(tokenArtifact.abi, null, 2)
-  );
   fs.writeFileSync(
     path.join(sharedAbiDir, "RentHouse.json"),
     JSON.stringify(rentHouseArtifact.abi, null, 2)
