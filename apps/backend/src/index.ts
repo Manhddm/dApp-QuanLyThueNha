@@ -11,6 +11,7 @@ import authRoutes from "./routes/authRoutes";
 import batDongSanRoutes from "./routes/batDongSanRoutes";
 import userRoutes from "./routes/userRoutes";
 import hopDongRoutes from "./routes/hopDongRoutes";
+import uploadRoutes from "./routes/uploadRoutes";
 
 // Import error handler (đặt cuối cùng)
 import { errorHandler } from "./middlewares/errorHandler";
@@ -30,6 +31,10 @@ app.use("/api/auth", authRoutes);
 app.use("/api/bat-dong-san", batDongSanRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/hop-dong", hopDongRoutes);
+app.use("/api/upload", uploadRoutes);
+
+// Phục vụ các file tĩnh trong thư mục uploads
+app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
 
 // Health check
 app.get("/", (_req, res) => {

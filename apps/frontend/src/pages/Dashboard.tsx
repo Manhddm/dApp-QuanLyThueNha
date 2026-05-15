@@ -1,6 +1,33 @@
 import { Plus, Home, Users, DollarSign, Activity, FileCheck, ArrowUpRight } from "lucide-react";
+import { useState, useEffect } from "react";
+import { useAuth } from "../context/AuthContext";
+import { formatOasis } from "../lib/utils";
+import { Link } from "react-router-dom";
 
 export default function Dashboard() {
+    const { user } = useAuth();
+    const [rooms, setRooms] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchMyRooms = async () => {
+            if (!user?.ma_nguoi_dung) return;
+            try {
+                setLoading(true);
+                const response = await fetch(`http://localhost:3000/api/bat-dong-san?ma_chu_so_huu=${user.ma_nguoi_dung}`);
+                const result = await response.json();
+                if (result.success) {
+                    setRooms(result.data);
+                }
+            } catch (error) {
+                console.error("Error fetching my rooms:", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchMyRooms();
+    }, [user]);
     return (
         <div className="max-w-7xl mx-auto px-6 md:px-8 py-12 w-full">
             <header className="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-6">
@@ -12,10 +39,10 @@ export default function Dashboard() {
                         Quản lý tài sản và theo dõi doanh thu thời gian thực.
                     </p>
                 </div>
-                <button className="bg-primary text-on-primary-fixed hover:bg-primary-dim px-6 py-3 rounded-xl font-label font-bold uppercase tracking-wider text-sm transition-all flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(168,164,255,0.3)]">
+                <Link to="/create-room" className="bg-primary text-on-primary-fixed hover:bg-primary-dim px-6 py-3 rounded-xl font-label font-bold uppercase tracking-wider text-sm transition-all flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(168,164,255,0.3)]">
                     <Plus size={18} />
-                    Tạo Smart Contract Mới
-                </button>
+                    Tạo phòng mới
+                </Link>
             </header>
 
             {/* Stats Overview */}
@@ -30,8 +57,8 @@ export default function Dashboard() {
                             +12.5% <ArrowUpRight size={12} className="ml-0.5" />
                         </span>
                     </div>
-                    <p className="text-xs uppercase tracking-widest font-bold text-on-surface-variant mb-1">Doanh thu tháng (ETH)</p>
-                    <p className="text-3xl font-headline font-bold text-on-surface">3.45</p>
+                    <p className="text-xs uppercase tracking-widest font-bold text-on-surface-variant mb-1">Doanh thu tháng (OASIS)</p>
+                    <p className="text-3xl font-headline font-bold text-primary">{formatOasis(6.42)}</p>
                 </div>
 
                 <div className="glass-panel p-6 rounded-2xl relative overflow-hidden group">
@@ -82,38 +109,48 @@ export default function Dashboard() {
                         <div className="grid grid-cols-12 gap-4 p-4 border-b border-white/5 bg-surface-container/50 text-xs font-bold uppercase tracking-widest text-on-surface-variant hidden md:grid">
                             <div className="col-span-5">Phòng</div>
                             <div className="col-span-2 text-center">Trạng thái</div>
-                            <div className="col-span-3 text-right">Giá / Cọc (ETH)</div>
+                            <div className="col-span-3 text-right">Giá / Cọc (OASIS)</div>
                             <div className="col-span-2 text-right">Action</div>
                         </div>
 
                         {/* List Items */}
-                        {[
-                            { name: "Skyline Loft Premium", id: "0x82f...a12", status: "Rented", tenant: "0x44B...12C", price: "0.85", deposit: "1.5" },
-                            { name: "Tech-Smart Studio", id: "0xccc...d45", status: "Available", tenant: null, price: "0.70", deposit: "1.4" },
-                            { name: "Industrial Brick Loft", id: "0xaa1...b23", status: "Rented", tenant: "0x91F...E34", price: "0.58", deposit: "1.0" }
-                        ].map((item, i) => (
-                            <div key={i} className="grid grid-cols-1 md:grid-cols-12 gap-4 p-4 border-b border-white/5 items-center hover:bg-white/[0.02] transition-colors">
-                                <div className="col-span-12 md:col-span-5">
-                                    <p className="font-bold text-on-surface truncate">{item.name}</p>
-                                    <p className="text-xs font-mono text-on-surface-variant mt-1">ID: {item.id}</p>
+                        {loading ? (
+                            <div className="p-8 text-center text-on-surface-variant animate-pulse font-mono text-sm uppercase tracking-widest">Đang tải danh sách phòng...</div>
+                        ) : rooms.length === 0 ? (
+                            <div className="p-8 text-center text-on-surface-variant font-mono text-sm uppercase tracking-widest">Bạn chưa có tài sản nào. Hãy thêm phòng mới!</div>
+                        ) : rooms.map((room) => (
+                            <div key={room.ma_bat_dong_san} className="grid grid-cols-1 md:grid-cols-12 gap-4 p-4 border-b border-white/5 items-center hover:bg-white/[0.02] transition-colors">
+                                <div className="col-span-12 md:col-span-5 flex items-center gap-3">
+                                    <div className="w-12 h-12 rounded-lg overflow-hidden shrink-0 bg-surface-container border border-white/5">
+                                        {room.anh_dai_dien ? (
+                                            <img src={room.anh_dai_dien} alt={room.ten} className="w-full h-full object-cover" />
+                                        ) : (
+                                            <div className="w-full h-full flex items-center justify-center text-on-surface-variant/30"><Home size={20} /></div>
+                                        )}
+                                    </div>
+                                    <div className="min-w-0">
+                                        <p className="font-bold text-on-surface truncate" title={room.ten}>{room.ten}</p>
+                                        <p className="text-xs font-mono text-on-surface-variant mt-1">ID: {room.ma_bat_dong_san}</p>
+                                    </div>
                                 </div>
                                 <div className="col-span-12 md:col-span-2 md:text-center flex items-center md:justify-center">
-                                    <span className={`px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest rounded-md border ${item.status === "Rented" ? "bg-secondary/10 text-secondary border-secondary/20" : "bg-[#22C55E]/10 text-[#22C55E] border-[#22C55E]/20"
+                                    <span className={`px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest rounded-md border ${room.trang_thai === "dang_thue" ? "bg-secondary/10 text-secondary border-secondary/20" : "bg-[#22C55E]/10 text-[#22C55E] border-[#22C55E]/20"
                                         }`}>
-                                        {item.status}
+                                        {room.trang_thai === "dang_thue" ? "Đã cho thuê" : "Phòng trống"}
                                     </span>
                                 </div>
                                 <div className="col-span-12 md:col-span-3 md:text-right flex items-center justify-between md:block">
                                     <span className="md:hidden text-xs text-on-surface-variant">Giá/Cọc:</span>
-                                    <div>
-                                        <p className="font-mono text-sm font-bold text-primary">{item.price}</p>
-                                        <p className="text-xs text-on-surface-variant font-mono">/ {item.deposit}</p>
+                                    <div className="font-mono text-sm font-bold flex items-center md:justify-end gap-1.5">
+                                        <span className="text-primary">{formatOasis(room.gia_thue)}</span>
+                                        <span className="text-on-surface-variant text-xs opacity-40">/</span>
+                                        <span className="text-on-surface-variant text-xs font-medium">{formatOasis(room.tien_dat_coc)}</span>
                                     </div>
                                 </div>
                                 <div className="col-span-12 md:col-span-2 md:text-right flex justify-end">
-                                    <button className="text-xs font-bold uppercase tracking-widest bg-surface-container-highest hover:bg-white/10 px-3 py-2 rounded-lg border border-white/5 transition-colors">
+                                    <Link to={`/manage-room/${room.ma_bat_dong_san}`} className="text-xs font-bold uppercase tracking-widest bg-surface-container-highest hover:bg-white/10 px-3 py-2 rounded-lg border border-white/5 transition-colors">
                                         Quản lý
-                                    </button>
+                                    </Link>
                                 </div>
                             </div>
                         ))}
@@ -134,7 +171,7 @@ export default function Dashboard() {
                                 </div>
                                 <div className="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] p-4 rounded-xl glass-panel shadow-md text-sm border border-white/5">
                                     <p className="font-bold text-on-surface mb-1 text-xs">Nhận tiền thuê</p>
-                                    <p className="text-on-surface-variant text-[10px] uppercase font-bold tracking-widest font-mono">0.85 ETH • 2 giờ trước</p>
+                                    <p className="text-on-surface-variant text-[10px] uppercase font-bold tracking-widest font-mono">{formatOasis(0.85)} OASIS • 2 giờ trước</p>
                                 </div>
                             </div>
 

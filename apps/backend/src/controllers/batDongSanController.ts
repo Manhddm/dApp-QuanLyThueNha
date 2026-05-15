@@ -8,8 +8,23 @@ export const getAllBatDongSan = async (req: Request, res: Response, next: NextFu
     const limit = parseInt(req.query.limit as string) || 20;
     const offset = parseInt(req.query.offset as string) || 0;
 
-    const data = await getListBatDongSanService(limit, offset);
-    res.json({ success: true, data });
+    const parseNum = (val: any) => {
+      const n = parseFloat(val);
+      return !isNaN(n) ? n : undefined;
+    };
+
+    const filters = {
+      search: req.query.search as string,
+      min_price: parseNum(req.query.min_price),
+      max_price: parseNum(req.query.max_price),
+      trang_thai: req.query.trang_thai as string,
+      so_phong_ngu: parseNum(req.query.so_phong_ngu),
+      tien_nghi: (req.query.tien_nghi as string)?.split(',').filter(Boolean),
+      ma_chu_so_huu: parseNum(req.query.ma_chu_so_huu),
+    };
+
+    const { data, total } = await getListBatDongSanService(limit, offset, filters);
+    res.json({ success: true, data, total });
   } catch (err) {
     next(err);
   }
@@ -37,8 +52,8 @@ export const createBatDongSan = async (req: AuthRequest, res: Response, next: Ne
   try {
     const { 
       ten, dia_chi, thanh_pho, quan_huyen, phuong_xa, mo_ta, loai_bat_dong_san,
-      dien_tich, gia_thue, tien_dat_coc, trang_thai, tien_nghi, so_nguoi_toi_da,
-      vi_do, kinh_do 
+      dien_tich, gia_thue, tien_dat_coc, trang_thai, tien_nghi, so_phong_ngu, so_nguoi_toi_da,
+      vi_do, kinh_do, anh_dai_dien, anh_phu 
     } = req.body;
     
     if (!ten || !dia_chi || !thanh_pho || !quan_huyen) {
@@ -61,9 +76,12 @@ export const createBatDongSan = async (req: AuthRequest, res: Response, next: Ne
       gia_thue: Number(gia_thue), 
       tien_dat_coc: Number(tien_dat_coc), 
       trang_thai, tien_nghi, 
+      so_phong_ngu: Number(so_phong_ngu || 1),
       so_nguoi_toi_da: Number(so_nguoi_toi_da || 2),
       vi_do: vi_do ? Number(vi_do) : undefined, 
-      kinh_do: kinh_do ? Number(kinh_do) : undefined
+      kinh_do: kinh_do ? Number(kinh_do) : undefined,
+      anh_dai_dien,
+      anh_phu
     }, userId, role);
 
     res.status(201).json({ success: true, message: "Tạo mới Bất động sản thành công", data: newBds });
@@ -94,6 +112,7 @@ export const updateBatDongSan = async (req: AuthRequest, res: Response, next: Ne
     if (updateData.dien_tich) updateData.dien_tich = Number(updateData.dien_tich);
     if (updateData.gia_thue) updateData.gia_thue = Number(updateData.gia_thue);
     if (updateData.tien_dat_coc) updateData.tien_dat_coc = Number(updateData.tien_dat_coc);
+    if (updateData.so_phong_ngu) updateData.so_phong_ngu = Number(updateData.so_phong_ngu);
     if (updateData.so_nguoi_toi_da) updateData.so_nguoi_toi_da = Number(updateData.so_nguoi_toi_da);
 
     const updatedBds = await updateBatDongSanService(id, updateData, userId, role);

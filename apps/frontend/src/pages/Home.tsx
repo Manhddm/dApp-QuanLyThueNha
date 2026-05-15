@@ -17,7 +17,7 @@ export default function Home() {
                         </h1>
                         <p className="text-xl text-on-surface-variant max-w-xl mb-10 leading-relaxed">
                             Kết nối chủ nhà và người thuê qua Smart Contract trên mạng lưới
-                            Ethereum. Trải nghiệm tương lai của bất động sản phi tập trung.
+                            Oasis. Trải nghiệm tương lai của bất động sản phi tập trung.
                         </p>
                         <div className="flex flex-wrap gap-4">
                             <Link
@@ -110,7 +110,7 @@ export default function Home() {
                                 Thanh toán tự động
                             </h3>
                             <p className="text-on-surface-variant leading-relaxed">
-                                Nhận và trả tiền bằng ETH một cách an toàn. Hệ thống tự động
+                                Nhận và trả tiền bằng OASIS một cách an toàn. Hệ thống tự động
                                 khấu trừ và chuyển khoản đúng hạn, giảm thiểu rủi ro chậm trễ.
                             </p>
                         </div>

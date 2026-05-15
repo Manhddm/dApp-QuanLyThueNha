@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { FileSignature, AlertCircle, ArrowRight, CheckCircle2 } from "lucide-react";
+import { formatOasis } from "../lib/utils";
 
 export default function Contracts() {
     const contracts = [
@@ -9,7 +10,7 @@ export default function Contracts() {
             address: "88 Đường Lê Lợi, Quận 1, TP.HCM",
             startDate: "01/05/2024",
             endDate: "01/05/2025",
-            rentAmount: "0.85 ETH",
+            rentAmount: 0.85,
             status: "Active",
             nextPayment: "05/06/2024",
             contractAddress: "0x3B6C908aD3aF21b7C118B80e608E986D58c44A2D"
@@ -20,7 +21,7 @@ export default function Contracts() {
             address: "45 Lê Văn Sỹ, Quận 3, TP.HCM",
             startDate: "15/02/2023",
             endDate: "15/02/2024",
-            rentAmount: "0.32 ETH",
+            rentAmount: 0.32,
             status: "Completed",
             nextPayment: null,
             contractAddress: "0x9F2E...1B9C"
@@ -73,7 +74,7 @@ export default function Contracts() {
                                     </div>
                                     <div>
                                         <p className="text-[10px] uppercase font-bold tracking-widest text-on-surface-variant mb-1">Tiền thuê</p>
-                                        <p className="font-mono text-sm font-bold text-primary">{contract.rentAmount}/tháng</p>
+                                        <p className="font-mono text-sm font-bold text-primary">{formatOasis(contract.rentAmount)} OASIS/tháng</p>
                                     </div>
                                     <div>
                                         <p className="text-[10px] uppercase font-bold tracking-widest text-on-surface-variant mb-1">Trạng thái</p>
@@ -104,7 +105,7 @@ export default function Contracts() {
                                             to={`/pay/${contract.id}`}
                                             className="w-full bg-gradient-to-r text-center from-primary to-primary-dim text-on-primary-fixed py-3.5 rounded-xl font-label text-sm font-bold uppercase tracking-wider hover:shadow-[0_0_20px_rgba(168,164,255,0.3)] transition-all flex items-center justify-center gap-2"
                                         >
-                                            Thanh toán ETH <ArrowRight size={16} />
+                                            Thanh toán OASIS <ArrowRight size={16} />
                                         </Link>
                                     </>
                                 ) : (

@@ -1,12 +1,45 @@
+import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Mail, Lock, Wallet } from "lucide-react";
+import { Mail, Lock } from "lucide-react";
+import { useAuth } from "../context/AuthContext";
+import { message } from "antd";
 
 export default function Login() {
     const navigate = useNavigate();
+    const { login } = useAuth();
+    
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
+    const [loading, setLoading] = useState(false);
 
-    const handleLogin = (e: React.FormEvent) => {
+    const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
-        navigate("/home");
+        setLoading(true);
+        
+        try {
+            const response = await fetch("http://localhost:3000/api/auth/login", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ email, mat_khau: password }),
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                login(data.data.token, data.data.user);
+                message.success("Đăng nhập thành công!");
+                navigate("/home");
+            } else {
+                message.error(data.message || "Đăng nhập thất bại");
+            }
+        } catch (error) {
+            console.error("Login error:", error);
+            message.error("Lỗi kết nối đến máy chủ");
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
@@ -25,7 +58,7 @@ export default function Login() {
                     {/* Branding Anchor */}
                     <div className="text-center mb-10">
                         <h1 className="font-headline text-4xl font-bold tracking-tighter text-primary">RentChain</h1>
-                        <p className="font-label text-xs uppercase tracking-[0.3em] text-on-surface-variant mt-2">The Ethereal Ledger</p>
+                        <p className="font-label text-xs uppercase tracking-[0.3em] text-on-surface-variant mt-2">The Oasis Ledger</p>
                     </div>
 
                     {/* Login Glass Card */}
@@ -45,6 +78,9 @@ export default function Login() {
                                         className="w-full bg-surface-container-highest border-none rounded-lg py-3 pl-10 pr-4 text-sm text-on-surface focus:ring-1 focus:ring-primary/50 placeholder:text-on-surface-variant/40 transition-all outline-none"
                                         placeholder="email@example.com"
                                         type="email"
+                                        value={email}
+                                        onChange={(e) => setEmail(e.target.value)}
+                                        required
                                     />
                                 </div>
                             </div>
@@ -63,20 +99,22 @@ export default function Login() {
                                         className="w-full bg-surface-container-highest border-none rounded-lg py-3 pl-10 pr-4 text-sm text-on-surface focus:ring-1 focus:ring-primary/50 placeholder:text-on-surface-variant/40 transition-all outline-none"
                                         placeholder="••••••••"
                                         type="password"
+                                        value={password}
+                                        onChange={(e) => setPassword(e.target.value)}
+                                        required
                                     />
                                 </div>
                             </div>
 
                             {/* Submit Button */}
                             <button
-                                className="w-full bg-gradient-to-r from-primary to-primary-dim text-on-primary-fixed font-label font-bold text-xs uppercase tracking-widest py-4 rounded-lg shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all duration-300"
+                                className="w-full bg-gradient-to-r from-primary to-primary-dim text-on-primary-fixed font-label font-bold text-xs uppercase tracking-widest py-4 rounded-lg shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all duration-300 disabled:opacity-70 disabled:cursor-not-allowed"
                                 type="submit"
+                                disabled={loading}
                             >
-                                Đăng nhập
+                                {loading ? "Đang đăng nhập..." : "Đăng nhập"}
                             </button>
                         </form>
-
-
 
                         {/* Footer Link */}
                         <div className="mt-8 text-center">

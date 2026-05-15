@@ -1,5 +1,6 @@
 import { useParams, Link } from "react-router-dom";
 import { ChevronLeft, Wallet, Shield, AlertTriangle } from "lucide-react";
+import { formatOasis } from "../lib/utils";
 
 export default function PayRent() {
     const { id } = useParams();
@@ -23,8 +24,10 @@ export default function PayRent() {
                         <div className="absolute top-[-50%] left-[-10%] w-[120%] h-[200%] bg-primary/5 rounded-[100%] pointer-events-none blur-3xl"></div>
                         <p className="text-sm font-bold uppercase tracking-widest text-on-surface-variant mb-4 relative z-10">Số lượng cần thanh toán</p>
                         <div className="flex items-baseline justify-center gap-2 relative z-10">
-                            <span className="text-6xl font-headline font-bold text-transparent bg-clip-text bg-gradient-to-br from-white to-white/60">0.85</span>
-                            <span className="text-2xl font-bold text-primary">ETH</span>
+                            <span className="text-4xl font-headline font-bold text-on-background tracking-tighter">
+                                {formatOasis(room.price)}
+                            </span>
+                            <span className="text-2xl font-bold text-primary">OASIS</span>
                         </div>
                         <p className="text-xs text-on-surface-variant mt-3 font-mono relative z-10">~ $2,845.50 USD</p>
                     </div>
@@ -49,14 +52,14 @@ export default function PayRent() {
                         <div>
                             <p className="text-[#EAB308] text-sm font-bold mb-1">Lưu ý quan trọng</p>
                             <p className="text-[#EAB308]/80 text-xs leading-relaxed">
-                                Giao dịch không thể hoàn tác sau khi thực hiện trên Blockchain. Vui lòng đảm bảo bạn đang sử dụng mạng lưới Ethereum Mainnet và có đủ số dư (bao gồm cả Gas fee).
+                                Giao dịch không thể hoàn tác sau khi thực hiện trên Blockchain. Vui lòng đảm bảo bạn đang sử dụng mạng lưới Oasis Network và có đủ số dư (bao gồm cả Gas fee).
                             </p>
                         </div>
                     </div>
 
                     <button className="w-full bg-gradient-to-r from-primary to-primary-dim text-on-primary-fixed py-4 md:py-5 rounded-xl font-label text-base font-bold uppercase tracking-widest hover:shadow-[0_0_30px_rgba(168,164,255,0.4)] transition-all flex items-center justify-center gap-3">
                         <Wallet size={20} />
-                        Chuyển 0.85 ETH
+                        Chuyển {formatOasis(room.price)} OASIS
                     </button>
                     <div className="flex items-center justify-center gap-2 mt-4 text-xs text-on-surface-variant">
                         <Shield size={14} className="text-[#22C55E]" /> Được bảo vệ bởi RentChain Smart Contract

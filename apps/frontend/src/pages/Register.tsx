@@ -1,12 +1,60 @@
+import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { User, Mail, Lock, ShieldCheck, Wallet } from "lucide-react";
+import { User, Mail, Lock, ShieldCheck, UserSearch, Home as HomeIcon, CheckCircle2 } from "lucide-react";
+import { message } from "antd";
 
 export default function Register() {
     const navigate = useNavigate();
 
-    const handleRegister = (e: React.FormEvent) => {
+    const [ho_ten, setHoTen] = useState("");
+    const [email, setEmail] = useState("");
+    const [mat_khau, setMatKhau] = useState("");
+    const [confirm_mat_khau, setConfirmMatKhau] = useState("");
+    const [vai_tro_ui, setVaiTroUi] = useState("tenant"); // "tenant" or "landlord"
+    const [loading, setLoading] = useState(false);
+
+    const handleRegister = async (e: React.FormEvent) => {
         e.preventDefault();
-        navigate("/home");
+        
+        if (mat_khau !== confirm_mat_khau) {
+            message.error("Mật khẩu xác nhận không khớp!");
+            return;
+        }
+
+        setLoading(true);
+
+        // Map UI role to backend role
+        const vai_tro = vai_tro_ui === "tenant" ? "nguoi_thue" : "chu_nha";
+
+        try {
+            const response = await fetch("http://localhost:3000/api/auth/register", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    ho_ten,
+                    email,
+                    mat_khau,
+                    vai_tro,
+                    // so_dien_thoai and dia_chi_vi can be added later if needed
+                }),
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                message.success("Đăng ký thành công! Vui lòng đăng nhập.");
+                navigate("/login");
+            } else {
+                message.error(data.message || "Đăng ký thất bại");
+            }
+        } catch (error) {
+            console.error("Register error:", error);
+            message.error("Lỗi kết nối đến máy chủ");
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
@@ -20,7 +68,7 @@ export default function Register() {
                         RentChain
                     </h1>
                     <p className="font-label text-xs uppercase tracking-[0.2em] text-on-surface-variant mt-2">
-                        The Ethereal Ledger
+                        The Oasis Ledger
                     </p>
                 </div>
 
@@ -41,6 +89,9 @@ export default function Register() {
                                     className="w-full bg-surface-container-highest border-none rounded-lg py-3.5 pl-11 pr-4 text-on-surface placeholder:text-outline/40 focus:ring-1 focus:ring-primary/50 transition-all outline-none"
                                     placeholder="Nguyễn Văn A"
                                     type="text"
+                                    value={ho_ten}
+                                    onChange={(e) => setHoTen(e.target.value)}
+                                    required
                                 />
                             </div>
                         </div>
@@ -54,6 +105,9 @@ export default function Register() {
                                     className="w-full bg-surface-container-highest border-none rounded-lg py-3.5 pl-11 pr-4 text-on-surface placeholder:text-outline/40 focus:ring-1 focus:ring-primary/50 transition-all outline-none"
                                     placeholder="example@rentchain.io"
                                     type="email"
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
+                                    required
                                 />
                             </div>
                         </div>
@@ -67,6 +121,9 @@ export default function Register() {
                                     className="w-full bg-surface-container-highest border-none rounded-lg py-3.5 pl-11 pr-4 text-on-surface placeholder:text-outline/40 focus:ring-1 focus:ring-primary/50 transition-all outline-none"
                                     placeholder="••••••••"
                                     type="password"
+                                    value={mat_khau}
+                                    onChange={(e) => setMatKhau(e.target.value)}
+                                    required
                                 />
                             </div>
                         </div>
@@ -80,7 +137,50 @@ export default function Register() {
                                     className="w-full bg-surface-container-highest border-none rounded-lg py-3.5 pl-11 pr-4 text-on-surface placeholder:text-outline/40 focus:ring-1 focus:ring-primary/50 transition-all outline-none"
                                     placeholder="••••••••"
                                     type="password"
+                                    value={confirm_mat_khau}
+                                    onChange={(e) => setConfirmMatKhau(e.target.value)}
+                                    required
                                 />
+                            </div>
+                        </div>
+
+                        {/* Role Selection */}
+                        <div className="space-y-3">
+                            <label className="block font-label text-[10px] uppercase tracking-widest text-on-surface-variant ml-1">Bạn là:</label>
+                            <div className="grid grid-cols-2 gap-4">
+                                <label className="relative flex flex-col items-center gap-3 p-4 rounded-xl bg-surface-container-highest/50 border border-outline-variant/30 cursor-pointer hover:bg-primary/5 transition-all group">
+                                    <input 
+                                        checked={vai_tro_ui === "tenant"} 
+                                        onChange={() => setVaiTroUi("tenant")} 
+                                        className="sr-only peer" 
+                                        name="role" 
+                                        type="radio" 
+                                        value="tenant" 
+                                    />
+                                    <div className="absolute inset-0 rounded-xl border-2 border-transparent peer-checked:border-primary/50 transition-all"></div>
+                                    <UserSearch className="w-8 h-8 text-primary/40 group-hover:text-primary transition-colors peer-checked:text-primary" />
+                                    <span className="text-sm font-medium text-on-surface-variant group-hover:text-on-surface transition-colors peer-checked:text-on-surface">Khách thuê</span>
+                                    <div className="absolute top-2 right-2 opacity-0 peer-checked:opacity-100 transition-opacity">
+                                        <CheckCircle2 className="text-primary w-4 h-4" />
+                                    </div>
+                                </label>
+
+                                <label className="relative flex flex-col items-center gap-3 p-4 rounded-xl bg-surface-container-highest/50 border border-outline-variant/30 cursor-pointer hover:bg-primary/5 transition-all group">
+                                    <input 
+                                        checked={vai_tro_ui === "landlord"} 
+                                        onChange={() => setVaiTroUi("landlord")} 
+                                        className="sr-only peer" 
+                                        name="role" 
+                                        type="radio" 
+                                        value="landlord" 
+                                    />
+                                    <div className="absolute inset-0 rounded-xl border-2 border-transparent peer-checked:border-primary/50 transition-all"></div>
+                                    <HomeIcon className="w-8 h-8 text-primary/40 group-hover:text-primary transition-colors peer-checked:text-primary" />
+                                    <span className="text-sm font-medium text-on-surface-variant group-hover:text-on-surface transition-colors peer-checked:text-on-surface">Chủ nhà</span>
+                                    <div className="absolute top-2 right-2 opacity-0 peer-checked:opacity-100 transition-opacity">
+                                        <CheckCircle2 className="text-primary w-4 h-4" />
+                                    </div>
+                                </label>
                             </div>
                         </div>
 
@@ -100,10 +200,11 @@ export default function Register() {
 
                         {/* Submit Button */}
                         <button
-                            className="w-full bg-gradient-to-r from-primary to-primary-dim text-on-primary-fixed font-label font-bold py-4 rounded-lg uppercase tracking-widest text-xs hover:scale-[1.02] active:scale-[0.98] transition-all shadow-[0_10px_20px_rgba(108,99,255,0.2)]"
+                            className="w-full bg-gradient-to-r from-primary to-primary-dim text-on-primary-fixed font-label font-bold py-4 rounded-lg uppercase tracking-widest text-xs hover:scale-[1.02] active:scale-[0.98] transition-all shadow-[0_10px_20px_rgba(108,99,255,0.2)] disabled:opacity-70 disabled:cursor-not-allowed"
                             type="submit"
+                            disabled={loading}
                         >
-                            Tạo tài khoản
+                            {loading ? "Đang xử lý..." : "Tạo tài khoản"}
                         </button>
                     </form>
 
@@ -133,7 +234,7 @@ export default function Register() {
                         RentChain
                     </div>
                     <div className="font-label text-xs uppercase tracking-widest text-on-surface-variant/60">
-                        © 2024 RentChain. The Ethereal Ledger.
+                        © 2024 RentChain. The Oasis Ledger.
                     </div>
                     <div className="flex gap-6">
                         <Link to="#" className="font-label text-xs uppercase tracking-widest text-on-surface-variant/80 hover:text-primary transition-colors">Documentation</Link>

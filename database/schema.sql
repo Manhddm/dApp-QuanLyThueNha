@@ -49,6 +49,7 @@ CREATE TABLE bat_dong_san (
     trang_thai          VARCHAR(20)     NOT NULL DEFAULT 'trong'
                             CHECK (trang_thai IN ('trong', 'da_thue', 'bao_tri')),
     tien_nghi           JSONB           NULL,
+    so_phong_ngu        INT             NOT NULL DEFAULT 1,
     so_nguoi_toi_da     INT             NOT NULL DEFAULT 2,
     vi_do               DECIMAL(10, 8)  NULL,
     kinh_do             DECIMAL(11, 8)  NULL,

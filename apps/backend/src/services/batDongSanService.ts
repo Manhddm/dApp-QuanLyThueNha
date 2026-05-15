@@ -1,8 +1,20 @@
 import { BatDongSan, CreateBatDongSanDTO, UpdateBatDongSanDTO, getAllBatDongSan, getBatDongSanById, createBatDongSan, updateBatDongSan, deleteBatDongSan } from "../models/batDongSanModel";
 import pool from "../config/db";
 
-export const getListBatDongSanService = async (limit?: number, offset?: number) => {
-  return await getAllBatDongSan(limit, offset);
+export const getListBatDongSanService = async (
+  limit?: number, 
+  offset?: number,
+  filters?: { 
+    search?: string; 
+    min_price?: number; 
+    max_price?: number; 
+    trang_thai?: string; 
+    so_phong_ngu?: number;
+    tien_nghi?: string[];
+    ma_chu_so_huu?: number;
+  }
+) => {
+  return await getAllBatDongSan(limit, offset, filters);
 };
 
 export const getBatDongSanDetailService = async (id: number) => {
