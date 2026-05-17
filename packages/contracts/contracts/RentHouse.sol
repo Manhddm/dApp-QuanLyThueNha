@@ -1,15 +1,13 @@
 // SPDX-License-Identifier: MIT
-/* 
-- Câu GHI, dùng Storage
-- Câu ĐỌC, truy cập ít field, không cần dùng
-- Câu ĐỌC, truy cập nhiều field, dùng storage
- */
 pragma solidity >=0.8.0 <0.9.0;
 
+/**
+ * @title RentHouse
+ * @dev Hợp đồng quản lý thuê nhà đa chủ sở hữu (Multi-landlord Platform)
+ */
 contract RentHouse {
-    address public landlord;
-
-    enum Status { Pending, Active, Ended, Rejected } // Trạng thái hợp đồng cố định
+    
+    enum Status { Pending, Active, Ended, Rejected, Evicted }
 
     struct RentalContract {
         uint id;
@@ -18,156 +16,150 @@ contract RentHouse {
         address tenant;
         uint rentPrice;
         uint deposit;
-        Status status; 
+        Status status;
+        uint nextPaymentDueDate;
     }
 
-    struct PaymentRecord {
-        uint contractId;
-        address tenant;
-        uint roomId;
-        uint rentPrice;
-        bool paid; // true = đã đóng, false = chưa đóng
-    }
+    // --- CÁC BIẾN TRẠNG THÁI (STATE VARIABLES) ---
+    uint public contractCount;  // Đếm tổng số hợp đồng đã tạo
 
-    uint public contractCount; // Đếm tổng số hợp đồng
-    mapping(uint => RentalContract) public contracts; // Bảng tra cứu id -> hợp đồng
+    mapping(uint => RentalContract) public contracts;
+    mapping(uint => mapping(uint => bool)) public paymentTracking; // contractId => thangNam => bool
+    
+    // --- SỰ KIỆN (EVENTS) ---
+    event RentRequested(uint indexed contractId, address indexed tenant, address indexed landlord, uint roomId, uint deposit);
+    event RentApproved(uint indexed contractId, address indexed tenant, uint roomId);
+    event RentRejected(uint indexed contractId, address indexed tenant, uint depositReturned);
+    event RentPaid(uint indexed contractId, address indexed tenant, uint amount, uint thangNam);
+    event ContractEnded(uint indexed contractId, address indexed tenant, uint depositReturned);
 
-    // Theo dõi thanh toán: contractId => thangNam (VD: 202604) => đã thanh toán?
-    mapping(uint => mapping(uint => bool)) public paymentTracking;
-
-    event RentRequested(uint indexed contractId, address indexed tenant, uint roomId, uint deposit); //Sự kiện Yêu cầu thuê
-    event RentApproved(uint indexed contractId, address indexed tenant, uint roomId); // Sự kiện Duyệt yêu cầu thuê
-    event RentRejected(uint indexed contractId, address indexed tenant, uint depositReturned); // Sự kiện Từ chối yêu cầu thuê
-    event RentPaid(uint indexed contractId, address indexed tenant, uint amount, uint thangNam); // Sự kiện Trả tiền thuê
-    event ContractEnded(uint indexed contractId, address indexed tenant, uint depositReturned); // Sự kiện Hợp đồng kết thúc
-
-    // Hàm tạo
-    constructor() {
-        landlord = msg.sender;
-        contractCount = 0;
-    }
-
-    // Bảo vệ các hàm dành cho chủ nhà - chỉ chủ nhà mới gọi được
-    modifier onlyLandlord() {
-        require(msg.sender == landlord, unicode"Chỉ có chủ nhà mới gọi được hàm này !");
+    // --- MODIFIERS ---
+    modifier onlyContractLandlord(uint _contractId) {
+        require(contracts[_contractId].landlord == msg.sender, "Ban khong phai chu nha cua hop dong nay!");
         _;
     }
 
-    // Khách gọi hàm này để yêu cầu thuê phòng (kèm theo tiền cọc)
-    function thuePhong(uint _roomId, uint _rentPrice) public payable {
-        require(msg.sender != address(0), unicode"Địa chỉ của người thuê phải khác 0 !");
-        
+    // --- CHỨC NĂNG CHÍNH ---
+
+    /**
+     * @dev Khách thuê gửi yêu cầu thuê một phòng cụ thể.
+     */
+    function thuePhong(uint _roomId, uint _rentPrice, address _landlord) public payable {
+        require(_roomId > 0, "Phong khong hop le!");
+        require(msg.sender != _landlord, "Chu nha khong the thue phong cua chinh minh!");
+        require(msg.value > 0, "Yeu cau tien dat coc!");
+
         contractCount++;
         contracts[contractCount] = RentalContract({
             id: contractCount,
             roomId: _roomId,
-            landlord: landlord,
+            landlord: _landlord,
             tenant: msg.sender,
             rentPrice: _rentPrice,
             deposit: msg.value,
-            status: Status.Pending
+            status: Status.Pending,
+            nextPaymentDueDate: 0
         });
 
-        emit RentRequested(contractCount, msg.sender, _roomId, msg.value);
+        emit RentRequested(contractCount, msg.sender, _landlord, _roomId, msg.value);
     }
 
-    // Chủ nhà duyệt cho thuê phòng
-    function duyetThuePhong(uint _contractId) public onlyLandlord {
-        require(contracts[_contractId].status == Status.Pending, unicode"Hợp đồng không ở trạng thái chờ duyệt !");
-        
-        contracts[_contractId].status = Status.Active;
-        emit RentApproved(_contractId, contracts[_contractId].tenant, contracts[_contractId].roomId);
+    /**
+     * @dev Chủ nhà duyệt yêu cầu thuê.
+     */
+    function duyetThuePhong(uint _contractId) public onlyContractLandlord(_contractId) {
+        RentalContract storage rental = contracts[_contractId];
+        require(rental.status == Status.Pending, "Hop dong khong o trang thai cho duyet!");
+
+        rental.status = Status.Active;
+        // Gán thời gian thanh toán tiếp theo là 30 ngày kể từ lúc duyệt
+        rental.nextPaymentDueDate = block.timestamp + 30 days;
+
+        emit RentApproved(_contractId, rental.tenant, rental.roomId);
     }
 
-    // Chủ nhà từ chối yêu cầu thuê và hoàn cọc
-    function tuChoiThuePhong(uint _contractId) public onlyLandlord {
-        require(contracts[_contractId].status == Status.Pending, unicode"Hợp đồng không ở trạng thái chờ duyệt !");
-        
-        contracts[_contractId].status = Status.Rejected;
-        
-        uint depositToReturn = contracts[_contractId].deposit;
-        contracts[_contractId].deposit = 0;
-        
-        payable(contracts[_contractId].tenant).transfer(depositToReturn);
-        
-        emit RentRejected(_contractId, contracts[_contractId].tenant, depositToReturn);
+    /**
+     * @dev Chủ nhà từ chối và trả lại tiền cọc cho khách.
+     */
+    function tuChoiThuePhong(uint _contractId) public onlyContractLandlord(_contractId) {
+        RentalContract storage rental = contracts[_contractId];
+        require(rental.status == Status.Pending, "Trang thai khong hop le!");
+
+        rental.status = Status.Rejected;
+        uint depositToReturn = rental.deposit;
+        rental.deposit = 0;
+
+        (bool success, ) = payable(rental.tenant).call{value: depositToReturn}("");
+        require(success, "Hoan tien coc that bai!");
+
+        emit RentRejected(_contractId, rental.tenant, depositToReturn);
     }
 
-    // Người thuê thanh toán tiền nhà hàng tháng
-    // _thangNam: tháng thanh toán dạng YYYYMM (VD: 202604 = tháng 4 năm 2026)
+    /**
+     * @dev Khách thanh toán tiền thuê hàng tháng.
+     */
     function thanhToanThang(uint _contractId, uint _thangNam) public payable {
         RentalContract storage rental = contracts[_contractId];
+        require(rental.status == Status.Active, "Hop dong khong hoat dong!");
+        require(msg.sender == rental.tenant, "Chi nguoi thue moi co the thanh toan!");
+        require(msg.value == rental.rentPrice, "Sai so tien thue!");
+        require(!paymentTracking[_contractId][_thangNam], "Thang nay da thanh toan!");
 
-        require(rental.status == Status.Active, unicode"Hợp đồng thuê hiện không hoạt động !"); 
-        require(msg.sender == rental.tenant, unicode"Chỉ người thuê nhà mới có thể trả tiền thuê nhà !");
-        require(msg.value == rental.rentPrice, unicode"Số tiền thuê nhà không chính xác !");
-        require(!paymentTracking[_contractId][_thangNam], unicode"Tháng này đã được thanh toán rồi !");
-
-        // Ghi nhận thanh toán
         paymentTracking[_contractId][_thangNam] = true;
-
-        payable(rental.landlord).transfer(msg.value);
+        // Cộng thêm 30 ngày vào hạn thanh toán
+        rental.nextPaymentDueDate += 30 days;
+        
+        (bool success, ) = payable(rental.landlord).call{value: msg.value}("");
+        require(success, "Chuyen tien cho chu nha that bai!");
 
         emit RentPaid(_contractId, msg.sender, msg.value, _thangNam);
     }
 
-    // Người thuê trả phòng và nhận lại tiền cọc
+    /**
+     * @dev Kết thúc hợp đồng (Trả phòng).
+     */
     function traPhong(uint _contractId) public {
         RentalContract storage rental = contracts[_contractId];
-
-        require(rental.status == Status.Active, unicode"Hợp đồng thuê hiện không hoạt động !");
-        require(msg.sender == rental.tenant, unicode"Chỉ người thuê nhà mới có thể trả phòng !");
+        require(rental.status == Status.Active, "Hop dong khong hoat dong!");
+        require(msg.sender == rental.tenant || msg.sender == rental.landlord, "Khong co quyen!");
 
         rental.status = Status.Ended;
         
         uint depositToReturn = rental.deposit;
-        rental.deposit = 0; 
+        rental.deposit = 0;
 
-        payable(msg.sender).transfer(depositToReturn);
+        (bool success, ) = payable(rental.tenant).call{value: depositToReturn}("");
+        require(success, "Hoan tien coc that bai!");
 
-        emit ContractEnded(_contractId, msg.sender, depositToReturn);
+        emit ContractEnded(_contractId, rental.tenant, depositToReturn);
     }
 
-    // Người thuê xem danh sách các hợp đồng của mình
+    /**
+     * @dev Chủ nhà chấm dứt hợp đồng và thu cọc nếu khách quá hạn thanh toán 5 ngày.
+     */
+    function thuHoiCocDoViPham(uint _contractId) public onlyContractLandlord(_contractId) {
+        RentalContract storage rental = contracts[_contractId];
+        require(rental.status == Status.Active, "Hop dong khong hoat dong!");
+        require(block.timestamp > rental.nextPaymentDueDate + 5 days, "Chua den han hoac chua qua thoi han an han 5 ngay!");
+
+        rental.status = Status.Evicted;
+        
+        uint depositToSeize = rental.deposit;
+        rental.deposit = 0;
+
+        // Chủ nhà thu toàn bộ cọc để bù đắp thiệt hại
+        (bool success, ) = payable(rental.landlord).call{value: depositToSeize}("");
+        require(success, "Chuyen tien coc cho chu nha that bai!");
+
+        emit ContractEnded(_contractId, rental.tenant, 0); // Trả lại 0 tiền cọc cho khách
+    }
+
+    // --- CÁC HÀM VIEW HỖ TRỢ FRONTEND ---
+
+    /**
+     * @dev Lấy tất cả hợp đồng (Bỏ msg.sender vì Oasis Sapphire ẩn msg.sender trong eth_call)
+     */
     function xemHopDong() public view returns (RentalContract[] memory) {
-        uint count = 0;
-        for (uint i = 1; i <= contractCount; i++) {
-            if (contracts[i].tenant == msg.sender) {
-                count++;
-            }
-        }
-        RentalContract[] memory myContracts = new RentalContract[](count);
-        uint index = 0;
-        for (uint i = 1; i <= contractCount; i++) {
-            if (contracts[i].tenant == msg.sender) {
-                myContracts[index] = contracts[i];
-                index++;
-            }
-        }
-        return myContracts;
-    }
-
-    // Chủ nhà xem danh sách hợp đồng của một người cụ thể
-    function xemHopDongKhach(address _tenant) public view onlyLandlord returns (RentalContract[] memory) {
-        uint count = 0;
-        for (uint i = 1; i <= contractCount; i++) {
-            if (contracts[i].tenant == _tenant) {
-                count++;
-            }
-        }
-        RentalContract[] memory theirContracts = new RentalContract[](count);
-        uint index = 0;
-        for (uint i = 1; i <= contractCount; i++) {
-            if (contracts[i].tenant == _tenant) {
-                theirContracts[index] = contracts[i];
-                index++;
-            }
-        }
-        return theirContracts;
-    }
-
-    // Chủ nhà xem danh sách tất cả hợp đồng
-    function danhSachHopDong() public view onlyLandlord returns (RentalContract[] memory) {
         RentalContract[] memory allContracts = new RentalContract[](contractCount);
         for (uint i = 1; i <= contractCount; i++) {
             allContracts[i - 1] = contracts[i];
@@ -175,73 +167,32 @@ contract RentHouse {
         return allContracts;
     }
 
-    // Chủ nhà xem danh sách hợp đồng đang chờ duyệt
-function danhSachChoDuyet() public view onlyLandlord returns (RentalContract[] memory) {
-    uint count = 0;
-    for (uint i = 1; i <= contractCount; i++) {
-        if (contracts[i].status == Status.Pending) {
-            count++;
-        }
+    /**
+     * @dev Lấy tất cả hợp đồng (cho Admin, nếu cần)
+     */
+    function danhSachHopDong() public view returns (RentalContract[] memory) {
+        return xemHopDong();
     }
 
-    // Hàm xem danh sách người thuê đang chờ duyệt
-    RentalContract[] memory pendingContracts = new RentalContract[](count);
-    uint index = 0;
-    for (uint i = 1; i <= contractCount; i++) {
-        if (contracts[i].status == Status.Pending) {
-            pendingContracts[index] = contracts[i];
-            index++;
-        }
-    }
-
-    return pendingContracts;
-}
-
-    // ===================== THEO DÕI THANH TOÁN =====================
-
-    // Kiểm tra 1 hợp đồng cụ thể đã thanh toán tháng đó chưa
-    function kiemTraThanhToan(uint _contractId, uint _thangNam) public view returns (bool) {
-        return paymentTracking[_contractId][_thangNam];
-    }
-
-    // Chủ nhà xem danh sách theo dõi thanh toán của tất cả hợp đồng Active trong 1 tháng
-    // Trả về danh sách PaymentRecord (contractId, tenant, roomId, rentPrice, paid)
-    function theoDoiThanhToan(uint _thangNam) public view onlyLandlord returns (PaymentRecord[] memory) {
-        // Đếm số hợp đồng Active
+    /**
+     * @dev Lấy tất cả hợp đồng chờ duyệt
+     */
+    function danhSachChoDuyet() public view returns (RentalContract[] memory) {
         uint count = 0;
         for (uint i = 1; i <= contractCount; i++) {
-            if (contracts[i].status == Status.Active) {
+            if (contracts[i].status == Status.Pending) {
                 count++;
             }
         }
 
-        PaymentRecord[] memory records = new PaymentRecord[](count);
+        RentalContract[] memory pendingContracts = new RentalContract[](count);
         uint index = 0;
         for (uint i = 1; i <= contractCount; i++) {
-            if (contracts[i].status == Status.Active) {
-                records[index] = PaymentRecord({
-                    contractId: contracts[i].id,
-                    tenant: contracts[i].tenant,
-                    roomId: contracts[i].roomId,
-                    rentPrice: contracts[i].rentPrice,
-                    paid: paymentTracking[i][_thangNam]
-                });
+             if (contracts[i].status == Status.Pending) {
+                pendingContracts[index] = contracts[i];
                 index++;
             }
         }
-        return records;
-    }
-
-    // Người thuê xem lịch sử thanh toán của mình cho nhiều tháng
-    // _danhSachThang: mảng các tháng cần kiểm tra (VD: [202601, 202602, 202603, 202604])
-    function xemLichSuThanhToan(uint _contractId, uint[] memory _danhSachThang) public view returns (bool[] memory) {
-        RentalContract storage rental = contracts[_contractId];
-        require(msg.sender == rental.tenant || msg.sender == landlord, unicode"Không có quyền xem !");
-
-        bool[] memory results = new bool[](_danhSachThang.length);
-        for (uint i = 0; i < _danhSachThang.length; i++) {
-            results[i] = paymentTracking[_contractId][_danhSachThang[i]];
-        }
-        return results;
+        return pendingContracts;
     }
 }
