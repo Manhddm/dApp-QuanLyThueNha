@@ -38,8 +38,11 @@ export const updateBatDongSanService = async (id: number, data: UpdateBatDongSan
   const bds = await getBatDongSanById(id);
   if (!bds) throw new Error("Không tìm thấy bất động sản");
 
-  // Kiểm tra quyền
-  if (role !== "admin" && bds.ma_chu_so_huu !== userId) {
+  // Cho phép cập nhật trạng thái trống/đã thuê khi thực hiện thanh toán/trả phòng/thu cọc trên blockchain
+  const isOnlyStatusUpdate = Object.keys(data).every(key => key === 'trang_thai');
+
+  // Kiểm tra quyền (chỉ admin hoặc chủ sở hữu mới có quyền thay đổi thông tin hành chính/giá cả)
+  if (role !== "admin" && bds.ma_chu_so_huu !== userId && !isOnlyStatusUpdate) {
     throw new Error("Bạn không có quyền cập nhật bất động sản này");
   }
 

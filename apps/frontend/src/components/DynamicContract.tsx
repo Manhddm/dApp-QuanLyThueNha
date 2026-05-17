@@ -3,6 +3,7 @@ import { X, Printer, ShieldCheck } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { formatOasis } from '../lib/utils';
 import { message } from 'antd';
+import { useAccount, useConnect } from 'wagmi';
 
 interface DynamicContractProps {
     isOpen: boolean;
@@ -17,6 +18,9 @@ interface DynamicContractProps {
 export default function DynamicContract({ isOpen, onClose, onSign, isPending, room, landlord, tenant }: DynamicContractProps) {
     const contractRef = useRef<HTMLDivElement>(null);
     const { user } = useAuth();
+    const { address, isConnected } = useAccount();
+    const { connectors, connect } = useConnect();
+    const isTenant = user?.vai_tro === 'nguoi_thue';
 
     if (!isOpen) return null;
 
@@ -62,8 +66,6 @@ export default function DynamicContract({ isOpen, onClose, onSign, isPending, ro
             printWindow.print();
         }, 250);
     };
-
-    const isTenant = user?.dia_chi_vi?.toLowerCase() === tenant?.dia_chi_vi?.toLowerCase();
 
     return (
         <div className="fixed inset-0 z-[100] flex flex-col p-4 md:p-8">
@@ -117,7 +119,7 @@ export default function DynamicContract({ isOpen, onClose, onSign, isPending, ro
                         <p>Ông/Bà: <strong>{tenant?.ho_ten || '...........................................'}</strong></p>
                         <p>Số CMND/CCCD: <strong>{tenant?.so_cccd || '...........................................'}</strong></p>
                         <p>Số điện thoại: <strong>{tenant?.so_dien_thoai || '...........................................'}</strong></p>
-                        <p>Địa chỉ Ví Blockchain (Smart Contract): <span className="font-mono text-sm">{tenant?.dia_chi_vi || '...........................................'}</span></p>
+                        <p>Địa chỉ Ví Blockchain (Smart Contract): <span className="font-mono text-sm">{tenant?.dia_chi_vi || address || '...........................................'}</span></p>
 
                         <p className="mt-6">Hai bên cùng thỏa thuận và ký kết Hợp đồng thuê phòng trọ/nhà ở với các điều khoản sau:</p>
 
@@ -176,13 +178,22 @@ export default function DynamicContract({ isOpen, onClose, onSign, isPending, ro
                         >
                             Hủy bỏ
                         </button>
-                        <button 
-                            onClick={onSign}
-                            disabled={isPending}
-                            className="bg-primary text-on-primary-fixed px-8 py-3 rounded-lg font-label font-bold uppercase tracking-widest hover:shadow-glow active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-                        >
-                            {isPending ? "Đang xử lý..." : "Xác nhận & Ký Smart Contract"}
-                        </button>
+                        {isConnected ? (
+                            <button 
+                                onClick={onSign}
+                                disabled={isPending}
+                                className="bg-primary text-on-primary-fixed px-8 py-3 rounded-lg font-label font-bold uppercase tracking-widest hover:shadow-glow active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                            >
+                                {isPending ? "Đang xử lý..." : "Xác nhận & Ký Smart Contract"}
+                            </button>
+                        ) : (
+                            <button 
+                                onClick={() => connect({ connector: connectors[0] })}
+                                className="bg-gradient-to-r from-primary to-primary-dim text-on-primary-fixed px-8 py-3 rounded-lg font-label font-bold uppercase tracking-widest hover:shadow-glow active:scale-95 transition-all flex items-center gap-2 shadow-[0_0_20px_rgba(168,164,255,0.2)]"
+                            >
+                                Kết nối ví Blockchain để Ký
+                            </button>
+                        )}
                     </div>
                 )}
             </div>

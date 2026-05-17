@@ -126,7 +126,15 @@ export const updateProfile = async (req: AuthRequest, res: Response, next: NextF
     res.json({ success: true, message: "Cập nhật thành công", data: updatedUser });
   } catch (err: any) {
     if (err.code === '23505') {
-      res.status(400).json({ success: false, message: "Địa chỉ ví Blockchain này đã được liên kết với một tài khoản khác. Vui lòng chuyển sang ví khác!" });
+      if (err.constraint === 'nguoi_dung_dia_chi_vi_key') {
+        res.status(400).json({ success: false, message: "Địa chỉ ví Blockchain này đã được liên kết với một tài khoản khác. Vui lòng chuyển sang ví khác!" });
+      } else if (err.constraint === 'nguoi_dung_so_cccd_key') {
+        res.status(400).json({ success: false, message: "Số CCCD này đã được đăng ký bởi tài khoản khác." });
+      } else if (err.constraint === 'nguoi_dung_email_key') {
+        res.status(400).json({ success: false, message: "Email này đã được đăng ký bởi tài khoản khác." });
+      } else {
+        res.status(400).json({ success: false, message: "Thông tin này đã tồn tại trong hệ thống." });
+      }
       return;
     }
     next(err);

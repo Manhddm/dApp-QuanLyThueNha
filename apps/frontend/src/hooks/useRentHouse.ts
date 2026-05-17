@@ -1,7 +1,7 @@
 import { useReadContract, useWriteContract, useWaitForTransactionReceipt, useAccount } from 'wagmi';
 import RentHouseABI from '../abi/RentHouse.json';
 // THAY ĐỊA CHỈ HỢP ĐỒNG MỚI CỦA BẠN VÀO ĐÂY SAU KHI DEPLOY LẠI
-const rentHouseAddress = '0x8A90d1003F4F6C376BB644035E2ec94c35277Ceb' as `0x${string}`;
+export const rentHouseAddress = '0xA1F1f99a9210cF8d374Ea71cBEB06C3Cd67263f0' as `0x${string}`;
 
 export function useRentHouse() {
   const { address: userAddress } = useAccount();
@@ -58,13 +58,23 @@ export function useRentHouse() {
   };
 
   const thanhToanThang = async (contractId: number, thangNam: number, rentPrice: bigint) => {
-    return await writeContractAsync({
-      address: rentHouseAddress,
-      abi: RentHouseABI.abi,
-      functionName: 'thanhToanThang',
-      args: [BigInt(contractId), BigInt(thangNam)],
-      value: rentPrice,
-    });
+    console.log("--- DEBUG THANH TOAN THANG ---");
+    console.log("Contract ID:", contractId);
+    console.log("Thang Nam:", thangNam);
+    console.log("Rent Price (Wei):", rentPrice.toString());
+    try {
+      return await writeContractAsync({
+        address: rentHouseAddress,
+        abi: RentHouseABI.abi,
+        functionName: 'thanhToanThang',
+        args: [BigInt(contractId), BigInt(thangNam)],
+        value: BigInt(rentPrice),
+        gas: 800000n, // Set explicit gas limit to prevent silent gas estimation failures
+      });
+    } catch (err) {
+      console.error("Error in thanhToanThang contract call:", err);
+      throw err;
+    }
   };
 
   const traPhong = async (contractId: number) => {

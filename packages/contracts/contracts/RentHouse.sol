@@ -72,8 +72,8 @@ contract RentHouse {
         require(rental.status == Status.Pending, "Hop dong khong o trang thai cho duyet!");
 
         rental.status = Status.Active;
-        // Gán thời gian thanh toán tiếp theo là 30 ngày kể từ lúc duyệt
-        rental.nextPaymentDueDate = block.timestamp + 30 days;
+        // Gán thời gian thanh toán tiếp theo là 15 giây kể từ lúc duyệt (thay vì 30 ngày) để DEMO NHANH 30S
+        rental.nextPaymentDueDate = block.timestamp + 15 seconds;
 
         emit RentApproved(_contractId, rental.tenant, rental.roomId);
     }
@@ -140,7 +140,8 @@ contract RentHouse {
     function thuHoiCocDoViPham(uint _contractId) public onlyContractLandlord(_contractId) {
         RentalContract storage rental = contracts[_contractId];
         require(rental.status == Status.Active, "Hop dong khong hoat dong!");
-        require(block.timestamp > rental.nextPaymentDueDate + 5 days, "Chua den han hoac chua qua thoi han an han 5 ngay!");
+        // Yêu cầu quá hạn thêm 15 giây (tổng cộng 30 giây kể từ khi duyệt) để DEMO NHANH 30S
+        require(block.timestamp > rental.nextPaymentDueDate + 15 seconds, "Chua den han hoac chua qua thoi han an han 5 ngay!");
 
         rental.status = Status.Evicted;
         

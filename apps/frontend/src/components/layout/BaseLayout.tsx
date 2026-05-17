@@ -1,17 +1,18 @@
 import { useState, useRef, useEffect, useMemo } from "react";
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
-import { Copy, Shield, Globe, LogOut, User as UserIcon, Sun, Moon, Bell, UserCircle } from "lucide-react";
+import { Copy, Shield, Globe, LogOut, User as UserIcon, Sun, Moon, Bell, UserCircle, ArrowRight, AlertTriangle } from "lucide-react";
 import { cn } from "../../lib/utils";
 import { useAuth } from "../../context/AuthContext";
 import { useAccount, useConnect, useDisconnect } from 'wagmi';
 import { injected } from 'wagmi/connectors';
 import { useTheme } from "../../hooks/useTheme";
 import { useRentHouse } from "../../hooks/useRentHouse";
+import { Modal } from "antd";
 
 export default function BaseLayout() {
     const location = useLocation();
     const navigate = useNavigate();
-    const { user, logout } = useAuth();
+    const { user, token, logout, updateUserContext } = useAuth();
     const { address, isConnected } = useAccount();
     const { connectors, connect } = useConnect();
     const { disconnect } = useDisconnect();
@@ -23,6 +24,45 @@ export default function BaseLayout() {
     const [isNotifOpen, setIsNotifOpen] = useState(false);
     const notifRef = useRef<HTMLDivElement>(null);
 
+    const handleDisconnect = () => {
+        Modal.confirm({
+            title: 'Xác nhận ngắt kết nối',
+            content: 'Bạn có chắc chắn muốn hủy kết nối với ví Blockchain hiện tại không?',
+            okText: 'Xác nhận',
+            cancelText: 'Hủy bỏ',
+            okButtonProps: { className: 'bg-red-500 hover:bg-red-600 text-white border-none' },
+            onOk() {
+                disconnect();
+            }
+        });
+    };
+
+    // Tự động đồng bộ ví kết nối lên DB trong background
+    useEffect(() => {
+        if (user && token && isConnected && address && user.dia_chi_vi !== address) {
+            const syncWallet = async () => {
+                try {
+                    const res = await fetch("http://localhost:3000/api/auth/profile", {
+                        method: "PUT",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "Authorization": `Bearer ${token}`
+                        },
+                        body: JSON.stringify({ dia_chi_vi: address })
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                        updateUserContext({ ...user, dia_chi_vi: address });
+                        console.log("Automatically synchronized connected wallet to database.");
+                    }
+                } catch (error) {
+                    console.error("Error auto-syncing wallet:", error);
+                }
+            };
+            syncWallet();
+        }
+    }, [user, token, isConnected, address]);
+
     // Notifications Logic
     const notifications = useMemo(() => {
         if (!myContracts || !address) return [];
@@ -30,31 +70,68 @@ export default function BaseLayout() {
         const now = Math.floor(Date.now() / 1000);
         
         for (const contract of myContracts) {
-            if (Number(contract.status) !== 1) continue; // Only Active contracts
-            
+            const status = Number(contract.status);
             const isTenant = contract.tenant.toLowerCase() === address.toLowerCase();
             const isLandlord = contract.landlord.toLowerCase() === address.toLowerCase();
+            
+            // Thông báo có người thuê phòng (cho Chủ nhà)
+            if (status === 0 && isLandlord) {
+                notifs.push({ 
+                    id: contract.id, 
+                    type: 'primary', 
+                    message: `Bạn có 1 yêu cầu thuê mới cho Phòng #${Number(contract.roomId)}. Bấm vào đây để xem chi tiết và duyệt!`,
+                    link: `/manage-room/${Number(contract.roomId)}`
+                });
+            }
+
+            if (status !== 1) continue; // Only Active contracts for payment logic
+
             const dueDate = Number(contract.nextPaymentDueDate);
-            const daysDiff = (dueDate - now) / (60 * 60 * 24);
-            const gracePeriodEnd = dueDate + (5 * 24 * 60 * 60);
+            const gracePeriodEnd = dueDate + 15; // Đồng bộ 15 giây cho DEMO
             
             if (isTenant) {
                 if (now > gracePeriodEnd) {
-                    notifs.push({ id: contract.id, type: 'danger', message: `Hợp đồng CT-${contract.id} đã quá hạn thanh toán! Chủ nhà có thể chấm dứt hợp đồng và thu cọc.` });
+                    notifs.push({ 
+                        id: contract.id, 
+                        type: 'danger', 
+                        message: `Hợp đồng CT-${contract.id} đã quá hạn thanh toán! Chủ nhà có thể chấm dứt hợp đồng và thu cọc. Nhấn để thanh toán ngay!`,
+                        link: `/contracts`
+                    });
                 } else if (now > dueDate) {
-                    notifs.push({ id: contract.id, type: 'warning', message: `Hợp đồng CT-${contract.id} đã tới hạn thanh toán. Bạn đang trong thời gian ân hạn 5 ngày.` });
-                } else if (daysDiff <= 5 && daysDiff >= 0) {
-                    notifs.push({ id: contract.id, type: 'info', message: `Sắp tới hạn thanh toán hợp đồng CT-${contract.id} (còn ${Math.floor(daysDiff)} ngày).` });
+                    notifs.push({ 
+                        id: contract.id, 
+                        type: 'warning', 
+                        message: `Hợp đồng CT-${contract.id} đã tới hạn thanh toán. Vui lòng thanh toán tránh bị phạt cọc. Nhấn để xem ngay!`,
+                        link: `/contracts`
+                    });
                 }
             }
             
             if (isLandlord) {
                 if (now > gracePeriodEnd) {
-                    notifs.push({ id: contract.id, type: 'danger', message: `Khách thuê hợp đồng CT-${contract.id} đã quá hạn 5 ngày. Bạn có quyền chấm dứt và thu cọc.` });
+                    notifs.push({ 
+                        id: contract.id, 
+                        type: 'danger', 
+                        message: `Khách thuê hợp đồng CT-${contract.id} đã quá hạn 15 giây. Bạn có quyền chấm dứt và thu cọc. Nhấn để giải quyết!`,
+                        link: `/contracts`
+                    });
                 }
             }
         }
         return notifs;
+    }, [myContracts, address]);
+
+    // Check if the current tenant has any active contracts that are past due
+    const hasOverdueContracts = useMemo(() => {
+        if (!myContracts || !address) return false;
+        const now = Math.floor(Date.now() / 1000);
+        return myContracts.some((contract: any) => {
+            const status = Number(contract.status);
+            const isTenant = contract.tenant.toLowerCase() === address.toLowerCase();
+            if (status !== 1 || !isTenant) return false;
+            const dueDate = Number(contract.nextPaymentDueDate);
+            return now > dueDate;
+        });
     }, [myContracts, address]);
 
     useEffect(() => {
@@ -148,7 +225,7 @@ export default function BaseLayout() {
                                                 {notifications.map((n, i) => (
                                                     <Link 
                                                         key={i} 
-                                                        to="/contracts"
+                                                        to={n.link || "/contracts"}
                                                         onClick={() => setIsNotifOpen(false)}
                                                         className={cn(
                                                             "px-4 py-3 border-b border-black/5 dark:border-white/5 last:border-0 hover:bg-black/5 dark:hover:bg-white/5 transition-colors text-sm",
@@ -167,10 +244,10 @@ export default function BaseLayout() {
                         
                         {isConnected ? (
                             <button 
-                                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                                className="hidden sm:block bg-surface-container-highest border border-primary/20 text-primary px-4 lg:px-6 py-2.5 rounded-lg font-mono text-xs hover:bg-primary/10 transition-all duration-200 truncate max-w-[200px]"
+                                onClick={handleDisconnect}
+                                className="hidden sm:block bg-red-500/10 hover:bg-red-500/20 text-red-500 border border-red-500/20 px-4 lg:px-6 py-2.5 rounded-lg font-label text-xs lg:text-sm font-bold uppercase tracking-wider transition-all duration-200 whitespace-nowrap"
                             >
-                                {user ? `${user.ho_ten} (${address?.slice(0, 4)}...${address?.slice(-4)})` : `${address?.slice(0, 6)}...${address?.slice(-4)}`}
+                                Hủy kết nối ví
                             </button>
                         ) : (
                             <button 
@@ -231,6 +308,18 @@ export default function BaseLayout() {
                     </div>
                 </div>
             </nav>
+
+            {/* Overdue Payment Alert Banner for Tenants */}
+            {hasOverdueContracts && (
+                <div 
+                    onClick={() => navigate('/contracts')}
+                    className="bg-gradient-to-r from-red-600 to-orange-500 hover:from-red-700 hover:to-orange-600 text-white py-3.5 px-6 text-center text-sm font-semibold cursor-pointer transition-all duration-300 flex items-center justify-center gap-3 shadow-[0_4px_20px_rgba(239,68,68,0.2)] animate-pulse shrink-0"
+                >
+                    <AlertTriangle size={18} className="animate-bounce shrink-0" />
+                    <span>Bạn có hợp đồng thuê nhà đã đến hạn hoặc quá hạn thanh toán tiền phòng! Nhấp vào đây để thanh toán ngay tránh bị phạt cọc.</span>
+                    <ArrowRight size={16} className="ml-1 shrink-0" />
+                </div>
+            )}
 
             {/* Main Content */}
             <main className="flex-grow flex flex-col w-full">

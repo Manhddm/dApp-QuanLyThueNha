@@ -6,6 +6,7 @@ import { formatOasis } from "../lib/utils";
 import { Check, X, Loader2, AlertCircle } from "lucide-react";
 import { useRentHouse } from "../hooks/useRentHouse";
 import { formatEther } from "viem";
+import { useAccount, useConnect } from "wagmi";
 
 export default function ManageRoom() {
     const { id } = useParams();
@@ -13,6 +14,8 @@ export default function ManageRoom() {
     const { user, token } = useAuth();
     
     const { pendingContracts, duyetThuePhong, tuChoiThuePhong, isPending, isWaiting, refetchPending, writeError } = useRentHouse();
+    const { isConnected } = useAccount();
+    const { connectors, connect } = useConnect();
 
     const [room, setRoom] = useState<any>(null);
     const [loading, setLoading] = useState(true);
@@ -268,6 +271,24 @@ export default function ManageRoom() {
                             <h2 className="text-xl font-headline font-bold flex items-center gap-2 mb-6">
                                 <Info size={20} className="text-primary" /> Yêu cầu thuê đang chờ duyệt
                             </h2>
+                            
+                            {!isConnected && (
+                                <div className="bg-orange-500/10 border border-orange-500/20 p-4 rounded-xl mb-6 flex flex-col gap-3">
+                                    <div className="flex items-start gap-3">
+                                        <AlertCircle size={18} className="text-orange-500 shrink-0 mt-0.5" />
+                                        <p className="text-sm text-orange-500 font-medium leading-relaxed">
+                                            Bạn chưa kết nối ví Blockchain. Vui lòng kết nối ví của bạn để tiến hành phê duyệt hoặc từ chối yêu cầu thuê phòng.
+                                        </p>
+                                    </div>
+                                    <button 
+                                        onClick={() => connect({ connector: connectors[0] })}
+                                        className="bg-orange-500 text-white py-2.5 rounded-xl font-label font-bold text-xs uppercase tracking-wider hover:bg-orange-600 active:scale-[0.98] transition-all w-full flex items-center justify-center gap-1.5 shadow-sm"
+                                    >
+                                        Kết nối ví ngay
+                                    </button>
+                                </div>
+                            )}
+
                             <div className="space-y-4">
                                 {roomPendingContracts.map((contract: any, idx: number) => {
                                     const cId = Number(contract.id);
