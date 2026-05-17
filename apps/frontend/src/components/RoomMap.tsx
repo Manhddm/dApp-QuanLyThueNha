@@ -72,7 +72,7 @@ export default function RoomMap({ rooms }: { rooms: any[] }) {
         : HANOI_COORDS;
 
     return (
-        <div className="w-full h-[600px] rounded-2xl overflow-hidden border border-white/10 relative z-0 shadow-2xl">
+        <div className="w-full h-[600px] rounded-2xl overflow-hidden border border-black/10 dark:border-white/10 relative z-0 shadow-2xl">
             <MapContainer 
                 center={initialCenter} 
                 zoom={13} 
@@ -131,7 +131,7 @@ export default function RoomMap({ rooms }: { rooms: any[] }) {
             </MapContainer>
             
             {validRooms.length === 0 && (
-                <div className="absolute top-4 left-1/2 -translate-x-1/2 z-[1000] bg-surface-container-highest/90 backdrop-blur-md px-6 py-3 rounded-full border border-white/10 shadow-lg text-sm font-semibold text-on-surface flex items-center gap-2">
+                <div className="absolute top-4 left-1/2 -translate-x-1/2 z-[1000] bg-surface-container-highest/90 backdrop-blur-md px-6 py-3 rounded-full border border-black/10 dark:border-white/10 shadow-lg text-sm font-semibold text-on-surface flex items-center gap-2">
                     <Info size={16} className="text-secondary" />
                     Không có phòng nào có thông tin tọa độ để hiển thị trên bản đồ.
                 </div>
@@ -139,3 +139,5 @@ export default function RoomMap({ rooms }: { rooms: any[] }) {
         </div>
     );
 }
+
+

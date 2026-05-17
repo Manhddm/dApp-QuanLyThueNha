@@ -14,13 +14,13 @@ export default function PayRent() {
             <div className="glass-card rounded-3xl overflow-hidden relative">
                 <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary via-secondary to-tertiary"></div>
 
-                <div className="p-8 md:p-12 text-center border-b border-white/5 relative bg-surface-container-low/50">
+                <div className="p-8 md:p-12 text-center border-b border-black/5 dark:border-white/5 relative bg-surface-container-low/50">
                     <h1 className="font-headline text-3xl font-bold mb-2">Thanh Toán Tiền Thuê</h1>
                     <p className="text-on-surface-variant text-sm font-mono tracking-widest uppercase">Contract ID: {id}</p>
                 </div>
 
                 <div className="p-8 md:p-12">
-                    <div className="bg-surface-container rounded-2xl p-6 border border-white/5 mb-8 text-center flex flex-col items-center justify-center py-10 relative overflow-hidden">
+                    <div className="bg-surface-container rounded-2xl p-6 border border-black/5 dark:border-white/5 mb-8 text-center flex flex-col items-center justify-center py-10 relative overflow-hidden">
                         <div className="absolute top-[-50%] left-[-10%] w-[120%] h-[200%] bg-primary/5 rounded-[100%] pointer-events-none blur-3xl"></div>
                         <p className="text-sm font-bold uppercase tracking-widest text-on-surface-variant mb-4 relative z-10">Số lượng cần thanh toán</p>
                         <div className="flex items-baseline justify-center gap-2 relative z-10">
@@ -33,15 +33,15 @@ export default function PayRent() {
                     </div>
 
                     <div className="space-y-4 mb-10">
-                        <div className="flex justify-between text-sm py-3 border-b border-white/5">
+                        <div className="flex justify-between text-sm py-3 border-b border-black/5 dark:border-white/5">
                             <span className="text-on-surface-variant">Phòng thuê</span>
                             <span className="font-bold text-right">Skyline Loft Premium</span>
                         </div>
-                        <div className="flex justify-between text-sm py-3 border-b border-white/5">
+                        <div className="flex justify-between text-sm py-3 border-b border-black/5 dark:border-white/5">
                             <span className="text-on-surface-variant">Kỳ thanh toán</span>
                             <span className="font-bold text-right">Tháng 06/2024 (01/06 - 30/06)</span>
                         </div>
-                        <div className="flex justify-between text-sm py-3 border-b border-white/5">
+                        <div className="flex justify-between text-sm py-3 border-b border-black/5 dark:border-white/5">
                             <span className="text-on-surface-variant">Địa chỉ ví nhận (Smart Contract)</span>
                             <span className="font-mono text-xs text-secondary truncate max-w-[150px] md:max-w-xs text-right">0x3B6C908aD3aF21b7C118B80e608E986D58c44A2D</span>
                         </div>
@@ -69,3 +69,5 @@ export default function PayRent() {
         </div>
     );
 }
+
+

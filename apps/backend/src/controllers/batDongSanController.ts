@@ -53,7 +53,7 @@ export const createBatDongSan = async (req: AuthRequest, res: Response, next: Ne
     const { 
       ten, dia_chi, thanh_pho, quan_huyen, phuong_xa, mo_ta, loai_bat_dong_san,
       dien_tich, gia_thue, tien_dat_coc, trang_thai, tien_nghi, so_phong_ngu, so_nguoi_toi_da,
-      vi_do, kinh_do, anh_dai_dien, anh_phu 
+      vi_do, kinh_do, anh_dai_dien, anh_phu, vi_chu_nha 
     } = req.body;
     
     if (!ten || !dia_chi || !thanh_pho || !quan_huyen) {
@@ -81,7 +81,8 @@ export const createBatDongSan = async (req: AuthRequest, res: Response, next: Ne
       vi_do: vi_do ? Number(vi_do) : undefined, 
       kinh_do: kinh_do ? Number(kinh_do) : undefined,
       anh_dai_dien,
-      anh_phu
+      anh_phu,
+      vi_chu_nha
     }, userId, role);
 
     res.status(201).json({ success: true, message: "Tạo mới Bất động sản thành công", data: newBds });

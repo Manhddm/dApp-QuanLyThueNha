@@ -126,7 +126,7 @@ export default function LocationPicker({ position, onChange, addressContext }: L
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         onKeyDown={handleKeyDown}
-                        className="w-full bg-surface-container-highest border border-white/5 rounded-xl py-3 pl-10 pr-4 text-sm focus:ring-2 focus:ring-primary/50 outline-none transition-all placeholder:text-on-surface-variant/40"
+                        className="w-full bg-surface-container-highest border border-black/5 dark:border-white/5 rounded-xl py-3 pl-10 pr-4 text-sm focus:ring-2 focus:ring-primary/50 outline-none transition-all placeholder:text-on-surface-variant/40"
                     />
                 </div>
                 <button
@@ -148,7 +148,7 @@ export default function LocationPicker({ position, onChange, addressContext }: L
             </div>
 
             {/* Bản đồ */}
-            <div className="w-full h-[300px] rounded-xl overflow-hidden border border-white/10 relative z-0">
+            <div className="w-full h-[300px] rounded-xl overflow-hidden border border-black/10 dark:border-white/10 relative z-0">
                 <MapContainer 
                     center={position || HANOI_COORDS} 
                     zoom={position ? 16 : 12} 
@@ -186,3 +186,5 @@ export default function LocationPicker({ position, onChange, addressContext }: L
         </div>
     );
 }
+
+

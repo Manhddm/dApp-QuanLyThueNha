@@ -20,6 +20,8 @@ export interface BatDongSan {
   vi_do?: number;
   kinh_do?: number;
   anh_dai_dien?: string;
+  vi_chu_nha?: string;
+  hop_dong_pdf?: string;
   ngay_tao: Date;
   ngay_cap_nhat: Date;
 }
@@ -44,6 +46,8 @@ export interface CreateBatDongSanDTO {
   kinh_do?: number;
   anh_dai_dien?: string;
   anh_phu?: string[];
+  vi_chu_nha?: string;
+  hop_dong_pdf?: string;
 }
 
 export interface UpdateBatDongSanDTO {
@@ -64,6 +68,8 @@ export interface UpdateBatDongSanDTO {
   vi_do?: number;
   kinh_do?: number;
   anh_dai_dien?: string;
+  vi_chu_nha?: string;
+  hop_dong_pdf?: string;
 }
 
 // Lấy danh sách BĐS (có phân trang và tìm kiếm)
@@ -158,7 +164,7 @@ export const getAllBatDongSan = async (
 // Lấy chi tiết BĐS kèm ví chủ nhà và danh sách hình ảnh
 export const getBatDongSanById = async (id: number): Promise<any | null> => {
   const result = await pool.query<any>(
-    `SELECT b.*, n.dia_chi_vi as vi_chu_nha 
+    `SELECT b.*, COALESCE(b.vi_chu_nha, n.dia_chi_vi) as vi_chu_nha 
      FROM bat_dong_san b 
      JOIN nguoi_dung n ON b.ma_chu_so_huu = n.ma_nguoi_dung 
      WHERE b.ma_bat_dong_san = $1`,
@@ -186,12 +192,12 @@ export const createBatDongSan = async (data: CreateBatDongSanDTO): Promise<BatDo
     `INSERT INTO bat_dong_san 
       (ma_chu_so_huu, ten, dia_chi, thanh_pho, quan_huyen, phuong_xa, mo_ta, loai_bat_dong_san,
        dien_tich, gia_thue, tien_dat_coc, trang_thai, tien_nghi, so_phong_ngu, so_nguoi_toi_da,
-       vi_do, kinh_do, anh_dai_dien, ngay_tao, ngay_cap_nhat)
+       vi_do, kinh_do, anh_dai_dien, vi_chu_nha, hop_dong_pdf, ngay_tao, ngay_cap_nhat)
      VALUES 
       ($1, $2, $3, $4, $5, $6, $7, COALESCE($8, 'nha_o'), 
        COALESCE($9, 0::NUMERIC), COALESCE($10, 0::NUMERIC), COALESCE($11, 0::NUMERIC), COALESCE($12, 'trong'), $13, 
        COALESCE($14, 1), COALESCE($15, 2),
-       $16::NUMERIC, $17::NUMERIC, $18, NOW(), NOW())
+       $16::NUMERIC, $17::NUMERIC, $18, $19, $20, NOW(), NOW())
      RETURNING *`,
     [
       data.ma_chu_so_huu,
@@ -212,6 +218,8 @@ export const createBatDongSan = async (data: CreateBatDongSanDTO): Promise<BatDo
       data.vi_do || null,
       data.kinh_do || null,
       data.anh_dai_dien || null,
+      data.vi_chu_nha || null,
+      data.hop_dong_pdf || null,
     ]
   );
   
@@ -274,6 +282,8 @@ export const updateBatDongSan = async (
   if (data.vi_do !== undefined) { fields.push(`vi_do = $${idx++}`); values.push(data.vi_do); }
   if (data.kinh_do !== undefined) { fields.push(`kinh_do = $${idx++}`); values.push(data.kinh_do); }
   if (data.anh_dai_dien !== undefined) { fields.push(`anh_dai_dien = $${idx++}`); values.push(data.anh_dai_dien); }
+  if (data.vi_chu_nha !== undefined) { fields.push(`vi_chu_nha = $${idx++}`); values.push(data.vi_chu_nha); }
+  if (data.hop_dong_pdf !== undefined) { fields.push(`hop_dong_pdf = $${idx++}`); values.push(data.hop_dong_pdf); }
 
   if (fields.length === 0) return await getBatDongSanById(id);
 

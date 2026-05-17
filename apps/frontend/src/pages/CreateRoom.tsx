@@ -1,12 +1,17 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Home, MapPin, Info, DollarSign, UploadCloud, Check } from "lucide-react";
+import { ArrowLeft, Home, MapPin, Info, DollarSign, UploadCloud, Check, FileSignature } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
+import { useAccount, useConnect } from 'wagmi';
+import { injected } from 'wagmi/connectors';
+import { Wallet, Loader2 } from "lucide-react";
 import LocationPicker from "../components/LocationPicker";
 
 export default function CreateRoom() {
     const navigate = useNavigate();
     const { user, token } = useAuth();
+    const { address, isConnected } = useAccount();
+    const { connectors, connect, isPending: isConnecting } = useConnect();
     
     const [formData, setFormData] = useState({
         ten: "",
@@ -18,6 +23,7 @@ export default function CreateRoom() {
         mo_ta: "",
         gia_thue: "",
         tien_dat_coc: "",
+        vi_chu_nha: address || "",
         // Tiện nghi
         so_phong_ngu: 1,
         selectedAmenities: [] as string[],
@@ -25,8 +31,16 @@ export default function CreateRoom() {
         kinh_do: null as number | null,
     });
 
+    // Cập nhật ví khi connect thành công
+    useEffect(() => {
+        if (address && !formData.vi_chu_nha) {
+            setFormData(prev => ({ ...prev, vi_chu_nha: address }));
+        }
+    }, [address]);
+
     const [images, setImages] = useState<File[]>([]);
     const [imagePreviews, setImagePreviews] = useState<string[]>([]);
+    const [pdfFile, setPdfFile] = useState<File | null>(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
 
@@ -116,6 +130,30 @@ export default function CreateRoom() {
                 }
             }
 
+            // 2. Upload PDF if there is one
+            let hop_dong_pdf = "";
+            if (pdfFile) {
+                const pdfFormData = new FormData();
+                pdfFormData.append("file", pdfFile);
+
+                const pdfRes = await fetch("http://localhost:3000/api/upload/file", {
+                    method: "POST",
+                    headers: {
+                        "Authorization": `Bearer ${token}`
+                    },
+                    body: pdfFormData
+                });
+
+                const pdfResult = await pdfRes.json();
+                if (!pdfRes.ok || !pdfResult.success) {
+                    throw new Error(pdfResult.message || "Lỗi tải PDF lên.");
+                }
+
+                if (pdfResult.url) {
+                    hop_dong_pdf = pdfResult.url;
+                }
+            }
+
             const payload = {
                 ten: formData.ten,
                 dia_chi: formData.dia_chi,
@@ -133,7 +171,9 @@ export default function CreateRoom() {
                 anh_dai_dien,
                 anh_phu,
                 vi_do: formData.vi_do,
-                kinh_do: formData.kinh_do
+                kinh_do: formData.kinh_do,
+                vi_chu_nha: formData.vi_chu_nha,
+                hop_dong_pdf: hop_dong_pdf || undefined
             };
 
             const response = await fetch("http://localhost:3000/api/bat-dong-san", {
@@ -200,7 +240,7 @@ export default function CreateRoom() {
                                 value={formData.ten}
                                 onChange={handleChange}
                                 type="text" 
-                                className="w-full bg-surface-container-highest border border-white/5 rounded-xl py-3.5 px-4 text-sm focus:ring-2 focus:ring-primary/50 outline-none transition-all placeholder:text-on-surface-variant/40"
+                                className="w-full bg-surface-container-highest border border-black/5 dark:border-white/5 rounded-xl py-3.5 px-4 text-sm focus:ring-2 focus:ring-primary/50 outline-none transition-all placeholder:text-on-surface-variant/40"
                                 placeholder="VD: Studio cao cấp trung tâm Quận 1..."
                             />
                         </div>
@@ -208,7 +248,7 @@ export default function CreateRoom() {
                         <div>
                             <label className="block text-xs font-semibold text-on-surface-variant uppercase tracking-widest mb-2">Hình ảnh phòng (chọn nhiều)</label>
                             <div className="relative">
-                                <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-white/10 border-dashed rounded-xl cursor-pointer bg-surface-container-highest hover:bg-surface-container transition-colors">
+                                <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-black/10 dark:border-white/10 border-dashed rounded-xl cursor-pointer bg-surface-container-highest hover:bg-surface-container transition-colors">
                                     <div className="flex flex-col items-center justify-center pt-5 pb-6">
                                         <UploadCloud className="w-8 h-8 mb-2 text-on-surface-variant" />
                                         <p className="text-sm text-on-surface-variant"><span className="font-semibold text-primary">Nhấn để tải lên</span> hoặc kéo thả</p>
@@ -262,7 +302,7 @@ export default function CreateRoom() {
                                 value={formData.thanh_pho}
                                 onChange={handleChange}
                                 type="text" 
-                                className="w-full bg-surface-container-highest border border-white/5 rounded-xl py-3.5 px-4 text-sm focus:ring-2 focus:ring-primary/50 outline-none transition-all"
+                                className="w-full bg-surface-container-highest border border-black/5 dark:border-white/5 rounded-xl py-3.5 px-4 text-sm focus:ring-2 focus:ring-primary/50 outline-none transition-all"
                                 placeholder="VD: TP. Hồ Chí Minh"
                             />
                         </div>
@@ -274,7 +314,7 @@ export default function CreateRoom() {
                                 value={formData.quan_huyen}
                                 onChange={handleChange}
                                 type="text" 
-                                className="w-full bg-surface-container-highest border border-white/5 rounded-xl py-3.5 px-4 text-sm focus:ring-2 focus:ring-primary/50 outline-none transition-all"
+                                className="w-full bg-surface-container-highest border border-black/5 dark:border-white/5 rounded-xl py-3.5 px-4 text-sm focus:ring-2 focus:ring-primary/50 outline-none transition-all"
                                 placeholder="VD: Quận 1"
                             />
                         </div>
@@ -287,12 +327,12 @@ export default function CreateRoom() {
                             value={formData.dia_chi}
                             onChange={handleChange}
                             type="text" 
-                            className="w-full bg-surface-container-highest border border-white/5 rounded-xl py-3.5 px-4 text-sm focus:ring-2 focus:ring-primary/50 outline-none transition-all"
+                            className="w-full bg-surface-container-highest border border-black/5 dark:border-white/5 rounded-xl py-3.5 px-4 text-sm focus:ring-2 focus:ring-primary/50 outline-none transition-all"
                             placeholder="Số nhà, Tên đường, Phường/Xã"
                         />
                     </div>
 
-                    <div className="mt-8 border-t border-white/5 pt-8">
+                    <div className="mt-8 border-t border-black/5 dark:border-white/5 pt-8">
                         <label className="block text-xs font-semibold text-on-surface-variant uppercase tracking-widest mb-4">Ghim vị trí trên bản đồ *</label>
                         <LocationPicker 
                             position={formData.vi_do && formData.kinh_do ? [formData.vi_do, formData.kinh_do] : null}
@@ -318,7 +358,7 @@ export default function CreateRoom() {
                                 onChange={handleChange}
                                 type="number" 
                                 min="1"
-                                className="w-full bg-surface-container-highest border border-white/5 rounded-xl py-3.5 px-4 text-sm focus:ring-2 focus:ring-primary/50 outline-none transition-all"
+                                className="w-full bg-surface-container-highest border border-black/5 dark:border-white/5 rounded-xl py-3.5 px-4 text-sm focus:ring-2 focus:ring-primary/50 outline-none transition-all"
                             />
                         </div>
                         <div>
@@ -330,7 +370,7 @@ export default function CreateRoom() {
                                 onChange={handleChange}
                                 type="number" 
                                 min="1"
-                                className="w-full bg-surface-container-highest border border-white/5 rounded-xl py-3.5 px-4 text-sm focus:ring-2 focus:ring-primary/50 outline-none transition-all"
+                                className="w-full bg-surface-container-highest border border-black/5 dark:border-white/5 rounded-xl py-3.5 px-4 text-sm focus:ring-2 focus:ring-primary/50 outline-none transition-all"
                             />
                         </div>
                         <div>
@@ -342,7 +382,7 @@ export default function CreateRoom() {
                                 onChange={handleChange}
                                 type="number" 
                                 min="1"
-                                className="w-full bg-surface-container-highest border border-white/5 rounded-xl py-3.5 px-4 text-sm focus:ring-2 focus:ring-primary/50 outline-none transition-all"
+                                className="w-full bg-surface-container-highest border border-black/5 dark:border-white/5 rounded-xl py-3.5 px-4 text-sm focus:ring-2 focus:ring-primary/50 outline-none transition-all"
                             />
                         </div>
                     </div>
@@ -355,9 +395,9 @@ export default function CreateRoom() {
                                     key={amenity.id}
                                     type="button"
                                     onClick={() => toggleAmenity(amenity.id)}
-                                    className={`flex items-center gap-3 p-4 rounded-xl border transition-all ${formData.selectedAmenities.includes(amenity.id) ? 'bg-primary/10 border-primary text-primary' : 'bg-surface-container-highest border-white/5 text-on-surface-variant hover:border-white/20'}`}
+                                    className={`flex items-center gap-3 p-4 rounded-xl border transition-all ${formData.selectedAmenities.includes(amenity.id) ? 'bg-primary/10 border-primary text-primary' : 'bg-surface-container-highest border-black/5 dark:border-white/5 text-on-surface-variant hover:border-black/20 dark:border-white/20'}`}
                                 >
-                                    <div className={`w-5 h-5 rounded flex items-center justify-center border ${formData.selectedAmenities.includes(amenity.id) ? 'bg-primary border-primary' : 'border-white/20'}`}>
+                                    <div className={`w-5 h-5 rounded flex items-center justify-center border ${formData.selectedAmenities.includes(amenity.id) ? 'bg-primary border-primary' : 'border-black/20 dark:border-white/20'}`}>
                                         {formData.selectedAmenities.includes(amenity.id) && <Check size={12} className="text-on-primary" strokeWidth={4} />}
                                     </div>
                                     <span className="text-sm font-bold">{amenity.label}</span>
@@ -373,7 +413,7 @@ export default function CreateRoom() {
                             value={formData.mo_ta}
                             onChange={handleChange}
                             rows={4}
-                            className="w-full bg-surface-container-highest border border-white/5 rounded-xl py-3.5 px-4 text-sm focus:ring-2 focus:ring-primary/50 outline-none transition-all resize-none placeholder:text-on-surface-variant/40"
+                            className="w-full bg-surface-container-highest border border-black/5 dark:border-white/5 rounded-xl py-3.5 px-4 text-sm focus:ring-2 focus:ring-primary/50 outline-none transition-all resize-none placeholder:text-on-surface-variant/40"
                             placeholder="Mô tả thêm về căn phòng, nội thất, quy định..."
                         ></textarea>
                     </div>
@@ -429,16 +469,121 @@ export default function CreateRoom() {
                     </div>
                 </section>
 
-                <div className="flex justify-end pt-4">
+                {/* 4. Blockchain Info */}
+                <section className="glass-panel p-8 rounded-2xl border border-primary/20 bg-primary/5 shadow-glow/5 relative overflow-hidden">
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full blur-3xl -mr-16 -mt-16"></div>
+                    <h2 className="text-xl font-headline font-bold mb-6 flex items-center gap-2 text-primary">
+                        <Wallet size={24} /> 4. Thông tin Blockchain
+                    </h2>
+                    
+                    <div className="space-y-6">
+                        <div>
+                            <label className="block text-xs font-bold uppercase tracking-widest text-on-surface-variant mb-2">
+                                Địa chỉ ví nhận tiền (OASIS) *
+                            </label>
+                            <div className="flex flex-col md:flex-row gap-3">
+                                <input
+                                    type="text"
+                                    required
+                                    name="vi_chu_nha"
+                                    placeholder="0x..."
+                                    value={formData.vi_chu_nha}
+                                    onChange={handleChange}
+                                    className="flex-1 bg-surface-container-highest border border-black/10 dark:border-white/10 rounded-xl px-4 py-3.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all font-mono"
+                                />
+                                {!isConnected && (
+                                    <button
+                                        type="button"
+                                        onClick={() => connect({ connector: connectors[0] })}
+                                        disabled={isConnecting}
+                                        className="bg-primary text-on-primary-fixed px-6 py-3.5 rounded-xl font-label font-bold uppercase tracking-wider text-xs transition-all flex items-center justify-center gap-2 shadow-glow/20"
+                                    >
+                                        {isConnecting ? <Loader2 size={16} className="animate-spin" /> : <Wallet size={16} />}
+                                        Connect Wallet
+                                    </button>
+                                )}
+                            </div>
+                            <p className="mt-3 text-[10px] text-on-surface-variant leading-relaxed opacity-70">
+                                <Info size={10} className="inline mr-1" /> 
+                                Địa chỉ này sẽ được dùng để nhận tiền đặt cọc và tiền thuê hàng tháng. Hãy đảm bảo bạn có quyền truy cập vào ví này.
+                            </p>
+                        </div>
+                    </div>
+                </section>
+
+                {/* 5. Pháp lý & Hợp đồng */}
+                <section className="glass-card p-8 rounded-2xl">
+                    <h2 className="text-xl font-headline font-bold mb-6 flex items-center gap-2">
+                        <FileSignature className="text-primary" size={20} /> 5. Hợp đồng (Tùy chọn)
+                    </h2>
+                    
+                    <div className="space-y-6">
+                        <div>
+                            <label className="block text-xs font-semibold text-on-surface-variant uppercase tracking-widest mb-2">Bản Hợp Đồng Mẫu (PDF)</label>
+                            <p className="text-xs text-on-surface-variant mb-4">
+                                Tải lên bản hợp đồng mẫu (.pdf) để khách thuê có thể đọc rõ các quy định, số tài khoản, điều khoản bồi thường... trước khi ký Smart Contract.
+                            </p>
+                            
+                            <label className="flex items-center gap-4 w-full border-2 border-black/10 dark:border-white/10 border-dashed rounded-xl p-4 cursor-pointer bg-surface-container-highest hover:bg-surface-container transition-colors">
+                                <div className="p-3 bg-primary/10 rounded-lg text-primary">
+                                    <UploadCloud size={24} />
+                                </div>
+                                <div className="flex-1">
+                                    {pdfFile ? (
+                                        <div>
+                                            <p className="text-sm font-bold text-on-surface">{pdfFile.name}</p>
+                                            <p className="text-xs text-on-surface-variant">{(pdfFile.size / 1024 / 1024).toFixed(2)} MB</p>
+                                        </div>
+                                    ) : (
+                                        <div>
+                                            <p className="text-sm font-bold text-on-surface">Tải lên file PDF</p>
+                                            <p className="text-xs text-on-surface-variant">Hỗ trợ file .pdf dưới 5MB</p>
+                                        </div>
+                                    )}
+                                </div>
+                                <input 
+                                    type="file" 
+                                    className="hidden" 
+                                    accept=".pdf,application/pdf"
+                                    onChange={(e) => {
+                                        if (e.target.files && e.target.files[0]) {
+                                            setPdfFile(e.target.files[0]);
+                                        }
+                                    }}
+                                />
+                            </label>
+                            
+                            {pdfFile && (
+                                <button
+                                    type="button"
+                                    onClick={() => setPdfFile(null)}
+                                    className="mt-3 text-xs text-red-500 font-bold hover:underline"
+                                >
+                                    ✕ Xóa file này
+                                </button>
+                            )}
+                        </div>
+                    </div>
+                </section>
+
+                <div className="pt-6">
                     <button 
-                        type="submit" 
+                        type="submit"
                         disabled={loading}
-                        className="bg-primary text-on-primary-fixed hover:bg-primary-dim px-10 py-4.5 rounded-xl font-label font-bold uppercase tracking-widest transition-all shadow-[0_0_20px_rgba(168,164,255,0.4)] hover:shadow-[0_0_30px_rgba(168,164,255,0.6)] disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                        className="w-full bg-gradient-to-r from-primary to-primary-dim text-on-primary-fixed py-5 rounded-2xl font-label font-bold uppercase tracking-[0.2em] hover:shadow-glow active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3 text-sm"
                     >
-                        {loading ? "Đang xử lý..." : "Đăng phòng lên hệ thống"}
+                        {loading ? (
+                            <div className="w-5 h-5 border-2 border-on-primary-fixed/30 border-t-on-primary-fixed rounded-full animate-spin"></div>
+                        ) : (
+                            <>
+                                <Check size={20} /> Đăng phòng ngay
+                            </>
+                        )}
                     </button>
                 </div>
             </form>
         </div>
     );
 }
+
+

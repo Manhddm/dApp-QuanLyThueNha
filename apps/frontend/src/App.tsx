@@ -16,6 +16,7 @@ import EditRoom from "./pages/EditRoom";
 import PayRent from "./pages/PayRent";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
+import Profile from "./pages/Profile";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 // Force HMR reload
@@ -34,6 +35,7 @@ export default function App() {
             <Route path="/rooms" element={<Rooms />} />
             <Route path="/rooms/:id" element={<RoomDetail />} />
             <Route path="/contracts" element={<Contracts />} />
+            <Route path="/profile" element={<Profile />} />
           </Route>
 
           {/* Protected routes for Admin & Landlord only */}

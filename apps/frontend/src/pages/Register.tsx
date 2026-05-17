@@ -228,7 +228,7 @@ export default function Register() {
             </main>
 
             {/* Footer Identity */}
-            <footer className="w-full py-12 mt-auto border-t border-white/5 z-10 w-full max-w-7xl mx-auto">
+            <footer className="w-full py-12 mt-auto border-t border-black/5 dark:border-white/5 z-10 w-full max-w-7xl mx-auto">
                 <div className="flex flex-col md:flex-row justify-between items-center px-8 space-y-4 md:space-y-0">
                     <div className="font-headline font-bold text-primary">
                         RentChain
@@ -251,3 +251,5 @@ export default function Register() {
         </div>
     );
 }
+
+

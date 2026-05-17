@@ -13,6 +13,7 @@ export interface Room {
     isAvailable: boolean;
     createdAt: string;
     owner: string;
+    pdfContract?: string;
 }
 
 export interface RoomFilters {
@@ -51,7 +52,8 @@ export const useRooms = () => {
                     amenities: r.tien_nghi || [],
                     isAvailable: r.trang_thai === 'trong',
                     createdAt: r.ngay_tao,
-                    owner: (r.ma_chu_so_huu || "Unknown").toString()
+                    owner: (r.ma_chu_so_huu || "Unknown").toString(),
+                    pdfContract: r.hop_dong_pdf || undefined
                 }));
                 setRooms(mappedRooms);
             } else {

@@ -115,7 +115,7 @@ export default function Rooms() {
             {/* Sidebar Filter Overlay */}
             {isSidebarOpen && (
                 <div 
-                    className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] transition-opacity"
+                    className="fixed inset-0 bg-black/60 dark:bg-white/60 backdrop-blur-sm z-[100] transition-opacity"
                     onClick={() => setIsSidebarOpen(false)}
                 />
             )}
@@ -128,7 +128,7 @@ export default function Rooms() {
                     </h2>
                     <button 
                         onClick={() => setIsSidebarOpen(false)}
-                        className="p-2 hover:bg-white/5 rounded-full transition-colors"
+                        className="p-2 hover:bg-black/5 dark:hover:bg-white/5 dark:bg-white/5 rounded-full transition-colors"
                     >
                         <X className="w-6 h-6" />
                     </button>
@@ -146,7 +146,7 @@ export default function Rooms() {
                                     placeholder="0"
                                     value={minPrice}
                                     onChange={(e) => setMinPrice(e.target.value)}
-                                    className="w-full bg-surface-container-highest border border-white/5 rounded-xl px-4 py-2.5 text-sm focus:ring-1 focus:ring-primary/50 outline-none"
+                                    className="w-full bg-surface-container-highest border border-black/5 dark:border-white/5 rounded-xl px-4 py-2.5 text-sm focus:ring-1 focus:ring-primary/50 outline-none"
                                 />
                             </div>
                             <div className="space-y-1.5">
@@ -156,7 +156,7 @@ export default function Rooms() {
                                     placeholder="Any"
                                     value={maxPrice}
                                     onChange={(e) => setMaxPrice(e.target.value)}
-                                    className="w-full bg-surface-container-highest border border-white/5 rounded-xl px-4 py-2.5 text-sm focus:ring-1 focus:ring-primary/50 outline-none"
+                                    className="w-full bg-surface-container-highest border border-black/5 dark:border-white/5 rounded-xl px-4 py-2.5 text-sm focus:ring-1 focus:ring-primary/50 outline-none"
                                 />
                             </div>
                         </div>
@@ -170,7 +170,7 @@ export default function Rooms() {
                                 <button
                                     key={num}
                                     onClick={() => setBedrooms(bedrooms === num ? null : num)}
-                                    className={`w-11 h-11 flex items-center justify-center rounded-xl font-bold text-sm transition-all border ${bedrooms === num ? 'bg-primary border-primary text-on-primary shadow-glow-sm' : 'bg-surface-container-highest border-white/5 hover:border-primary/40'}`}
+                                    className={`w-11 h-11 flex items-center justify-center rounded-xl font-bold text-sm transition-all border ${bedrooms === num ? 'bg-primary border-primary text-on-primary shadow-glow-sm' : 'bg-surface-container-highest border-black/5 dark:border-white/5 hover:border-primary/40'}`}
                                 >
                                     {num}{num === 5 ? '+' : ''}
                                 </button>
@@ -185,7 +185,7 @@ export default function Rooms() {
                             {amenitiesList.map((amenity) => (
                                 <label 
                                     key={amenity.id}
-                                    className="flex items-center justify-between p-3.5 rounded-xl bg-surface-container-highest border border-white/5 cursor-pointer hover:bg-white/5 transition-colors group"
+                                    className="flex items-center justify-between p-3.5 rounded-xl bg-surface-container-highest border border-black/5 dark:border-white/5 cursor-pointer hover:bg-black/5 dark:hover:bg-white/5 dark:bg-white/5 transition-colors group"
                                 >
                                     <span className="text-sm font-medium">{amenity.label}</span>
                                     <div className="relative">
@@ -195,7 +195,7 @@ export default function Rooms() {
                                             checked={selectedAmenities.includes(amenity.id)}
                                             onChange={() => toggleAmenity(amenity.id)}
                                         />
-                                        <div className={`w-5 h-5 rounded-md border flex items-center justify-center transition-all ${selectedAmenities.includes(amenity.id) ? 'bg-primary border-primary' : 'bg-transparent border-white/20 group-hover:border-primary/50'}`}>
+                                        <div className={`w-5 h-5 rounded-md border flex items-center justify-center transition-all ${selectedAmenities.includes(amenity.id) ? 'bg-primary border-primary' : 'bg-transparent border-black/20 dark:border-white/20 group-hover:border-primary/50'}`}>
                                             {selectedAmenities.includes(amenity.id) && <Check className="w-3.5 h-3.5 text-on-primary" strokeWidth={4} />}
                                         </div>
                                     </div>
@@ -217,12 +217,12 @@ export default function Rooms() {
                                 className="sr-only peer" 
                                 type="checkbox" 
                             />
-                            <div className="w-10 h-5.5 bg-white/10 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[3px] after:start-[3px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary"></div>
+                            <div className="w-10 h-5.5 bg-black/10 dark:bg-white/10 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[3px] after:start-[3px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary"></div>
                         </label>
                     </div>
                 </div>
 
-                <div className="mt-10 grid grid-cols-2 gap-4 pt-8 border-t border-white/5">
+                <div className="mt-10 grid grid-cols-2 gap-4 pt-8 border-t border-black/5 dark:border-white/5">
                     <button 
                         onClick={handleResetFilters}
                         className="py-3.5 rounded-xl text-xs font-bold uppercase tracking-widest text-on-surface-variant hover:text-on-surface transition-colors"
@@ -252,7 +252,7 @@ export default function Rooms() {
                 
                 <div className="flex items-center gap-3">
                     {/* View Mode Toggle */}
-                    <div className="flex items-center bg-surface-container-highest p-1.5 rounded-2xl border border-white/5 shadow-xl">
+                    <div className="flex items-center bg-surface-container-highest p-1.5 rounded-2xl border border-black/5 dark:border-white/5 shadow-xl">
                         <button
                             onClick={() => setViewMode('grid')}
                             className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all ${viewMode === 'grid' ? 'bg-primary text-on-primary shadow-glow-sm' : 'text-on-surface-variant hover:text-on-surface'}`}
@@ -276,7 +276,7 @@ export default function Rooms() {
                 <div className="relative flex-grow group w-full">
                     <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-on-surface-variant/40 w-5 h-5 transition-colors group-focus-within:text-primary" />
                     <input
-                        className="w-full bg-surface-container-low border border-white/5 rounded-2xl py-5 pl-14 pr-6 text-base focus:ring-2 focus:ring-primary/20 placeholder:text-on-surface-variant/30 transition-all outline-none shadow-2xl"
+                        className="w-full bg-surface-container-low border border-black/5 dark:border-white/5 rounded-2xl py-5 pl-14 pr-6 text-base focus:ring-2 focus:ring-primary/20 placeholder:text-on-surface-variant/30 transition-all outline-none shadow-2xl"
                         placeholder="Tìm kiếm theo thành phố, quận huyện..."
                         type="text"
                         value={search}
@@ -286,7 +286,7 @@ export default function Rooms() {
                 </div>
                 <button 
                     onClick={() => setIsSidebarOpen(true)}
-                    className="h-[66px] px-8 bg-surface-container-low border border-white/5 rounded-2xl flex items-center gap-3 font-bold text-sm uppercase tracking-widest hover:border-primary/40 transition-all shadow-2xl hover:bg-white/5"
+                    className="h-[66px] px-8 bg-surface-container-low border border-black/5 dark:border-white/5 rounded-2xl flex items-center gap-3 font-bold text-sm uppercase tracking-widest hover:border-primary/40 transition-all shadow-2xl hover:bg-black/5 dark:hover:bg-white/5 dark:bg-white/5"
                 >
                     <SlidersHorizontal className="w-5 h-5 text-primary" />
                     Filters
@@ -307,17 +307,17 @@ export default function Rooms() {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
                     {[1, 2, 3, 4, 5, 6].map((n) => (
                         <div key={n} className="glass-card rounded-3xl h-[480px] animate-pulse bg-surface-container-high/50 overflow-hidden">
-                            <div className="h-2/3 bg-white/5"></div>
+                            <div className="h-2/3 bg-black/5 dark:bg-white/5"></div>
                             <div className="p-8 space-y-4">
-                                <div className="h-6 w-3/4 bg-white/5 rounded-lg"></div>
-                                <div className="h-4 w-1/2 bg-white/5 rounded-lg"></div>
+                                <div className="h-6 w-3/4 bg-black/5 dark:bg-white/5 rounded-lg"></div>
+                                <div className="h-4 w-1/2 bg-black/5 dark:bg-white/5 rounded-lg"></div>
                             </div>
                         </div>
                     ))}
                 </div>
             ) : rooms.length === 0 ? (
                 <div className="w-full py-32 flex flex-col items-center justify-center text-center">
-                    <div className="w-24 h-24 rounded-full bg-surface-container-highest flex items-center justify-center mb-8 border border-white/5">
+                    <div className="w-24 h-24 rounded-full bg-surface-container-highest flex items-center justify-center mb-8 border border-black/5 dark:border-white/5">
                         <XCircle className="w-12 h-12 text-on-surface-variant/20" />
                     </div>
                     <h3 className="font-headline text-3xl font-bold text-on-surface mb-3">Không tìm thấy phòng nào</h3>
@@ -349,7 +349,7 @@ export default function Rooms() {
                                         </div>
                                     )}
                                     <div className="absolute top-6 right-6 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity transform translate-x-4 group-hover:translate-x-0 duration-500">
-                                        <button className="p-3 bg-surface/80 backdrop-blur-md rounded-2xl border border-white/10 text-on-surface hover:text-primary transition-colors">
+                                        <button className="p-3 bg-surface/80 backdrop-blur-md rounded-2xl border border-black/10 dark:border-white/10 text-on-surface hover:text-primary transition-colors">
                                             <Filter className="w-5 h-5" />
                                         </button>
                                     </div>
@@ -368,17 +368,17 @@ export default function Rooms() {
                                     </div>
                                     
                                     <div className="flex gap-4 mb-8">
-                                        <div className="flex items-center gap-1.5 px-3 py-1.5 bg-white/5 rounded-xl border border-white/5 text-[11px] font-bold text-on-surface-variant">
+                                        <div className="flex items-center gap-1.5 px-3 py-1.5 bg-black/5 dark:bg-white/5 rounded-xl border border-black/5 dark:border-white/5 text-[11px] font-bold text-on-surface-variant">
                                             <Home className="w-3.5 h-3.5 text-primary" />
                                             {room.so_phong_ngu || 1} Bed
                                         </div>
-                                        <div className="flex items-center gap-1.5 px-3 py-1.5 bg-white/5 rounded-xl border border-white/5 text-[11px] font-bold text-on-surface-variant">
+                                        <div className="flex items-center gap-1.5 px-3 py-1.5 bg-black/5 dark:bg-white/5 rounded-xl border border-black/5 dark:border-white/5 text-[11px] font-bold text-on-surface-variant">
                                             <LayoutGrid className="w-3.5 h-3.5 text-secondary" />
                                             {room.dien_tich} m²
                                         </div>
                                     </div>
 
-                                    <div className="flex items-center justify-between mt-auto pt-6 border-t border-white/5">
+                                    <div className="flex items-center justify-between mt-auto pt-6 border-t border-black/5 dark:border-white/5">
                                         <div>
                                             <p className="text-[10px] text-on-surface-variant uppercase tracking-widest font-bold mb-1 opacity-40">Monthly Rent</p>
                                             <div className="flex items-baseline gap-1">
@@ -408,7 +408,7 @@ export default function Rooms() {
                     <button 
                         onClick={() => setPage(Math.max(1, page - 1))}
                         disabled={page === 1}
-                        className="w-12 h-12 flex items-center justify-center rounded-2xl border border-white/10 text-on-surface-variant hover:bg-white/5 transition-colors disabled:opacity-20 disabled:cursor-not-allowed group"
+                        className="w-12 h-12 flex items-center justify-center rounded-2xl border border-black/10 dark:border-white/10 text-on-surface-variant hover:bg-black/5 dark:hover:bg-white/5 dark:bg-white/5 transition-colors disabled:opacity-20 disabled:cursor-not-allowed group"
                     >
                         <ChevronLeft className="w-6 h-6 transition-transform group-hover:-translate-x-1" />
                     </button>
@@ -417,7 +417,7 @@ export default function Rooms() {
                         <button 
                             key={i}
                             onClick={() => setPage(i + 1)}
-                            className={`w-12 h-12 flex items-center justify-center rounded-2xl transition-all font-bold text-sm ${page === i + 1 ? 'bg-primary text-on-primary shadow-glow' : 'border border-white/5 text-on-surface-variant hover:bg-white/5'}`}
+                            className={`w-12 h-12 flex items-center justify-center rounded-2xl transition-all font-bold text-sm ${page === i + 1 ? 'bg-primary text-on-primary shadow-glow' : 'border border-black/5 dark:border-white/5 text-on-surface-variant hover:bg-black/5 dark:hover:bg-white/5 dark:bg-white/5'}`}
                         >
                             {i + 1}
                         </button>
@@ -426,7 +426,7 @@ export default function Rooms() {
                     <button 
                         onClick={() => setPage(Math.min(totalPages, page + 1))}
                         disabled={page === totalPages}
-                        className="w-12 h-12 flex items-center justify-center rounded-2xl border border-white/10 text-on-surface-variant hover:bg-white/5 transition-colors disabled:opacity-20 disabled:cursor-not-allowed group"
+                        className="w-12 h-12 flex items-center justify-center rounded-2xl border border-black/10 dark:border-white/10 text-on-surface-variant hover:bg-black/5 dark:hover:bg-white/5 dark:bg-white/5 transition-colors disabled:opacity-20 disabled:cursor-not-allowed group"
                     >
                         <ChevronRight className="w-6 h-6 transition-transform group-hover:translate-x-1" />
                     </button>
@@ -435,3 +435,5 @@ export default function Rooms() {
         </div>
     );
 }
+
+

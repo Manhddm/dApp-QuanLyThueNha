@@ -3,11 +3,18 @@ import { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
 import { formatOasis } from "../lib/utils";
 import { Link } from "react-router-dom";
+import { useRentHouse } from "../hooks/useRentHouse";
+import { useAccount } from "wagmi";
+import { Check, X, Loader2, Info } from "lucide-react";
+import { formatEther } from "viem";
 
 export default function Dashboard() {
     const { user } = useAuth();
     const [rooms, setRooms] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
+    
+    const { isConnected, address } = useAccount();
+    const { pendingContracts, duyetThuePhong, tuChoiThuePhong, isPending, isWaiting, refetchPending } = useRentHouse();
 
     useEffect(() => {
         const fetchMyRooms = async () => {
@@ -86,9 +93,9 @@ export default function Dashboard() {
                 </div>
 
                 <div className="glass-panel p-6 rounded-2xl relative overflow-hidden group">
-                    <div className="absolute top-0 right-0 w-24 h-24 bg-surface-container-highest rounded-full blur-2xl group-hover:bg-white/5 transition-all"></div>
+                    <div className="absolute top-0 right-0 w-24 h-24 bg-surface-container-highest rounded-full blur-2xl group-hover:bg-black/5 dark:hover:bg-white/5 dark:bg-white/5 transition-all"></div>
                     <div className="flex justify-between items-start mb-4">
-                        <div className="w-10 h-10 rounded-lg bg-surface-container-highest flex items-center justify-center text-on-surface border border-white/10">
+                        <div className="w-10 h-10 rounded-lg bg-surface-container-highest flex items-center justify-center text-on-surface border border-black/10 dark:border-white/10">
                             <FileCheck size={20} />
                         </div>
                     </div>
@@ -97,6 +104,55 @@ export default function Dashboard() {
                 </div>
             </div>
 
+            {/* Pending Requests Section */}
+            {isConnected && pendingContracts && pendingContracts.filter((c: any) => c.landlord.toLowerCase() === address?.toLowerCase()).length > 0 && (
+                <div className="mb-12">
+                    <h2 className="text-xl font-headline font-bold flex items-center gap-2 mb-6">
+                        <Info size={20} className="text-primary" /> Yêu cầu thuê đang chờ duyệt
+                    </h2>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {pendingContracts
+                            .filter((c: any) => c.landlord.toLowerCase() === address?.toLowerCase())
+                            .map((contract: any, idx: number) => {
+                            // contract: [id, roomId, landlord, tenant, rentPrice, deposit, status]
+                            const cId = Number(contract.id);
+                            const rId = Number(contract.roomId);
+                            const tenant = contract.tenant;
+                            const deposit = contract.deposit;
+
+                            return (
+                                <div key={idx} className="glass-card p-6 rounded-2xl border-l-4 border-primary shadow-glow/5 relative group">
+                                    <div className="flex justify-between items-start mb-4">
+                                        <div>
+                                            <p className="text-[10px] uppercase tracking-widest font-bold text-on-surface-variant mb-1">Contract ID: {cId}</p>
+                                            <h3 className="font-headline font-bold text-lg">Yêu cầu thuê Phòng #{rId}</h3>
+                                            <p className="text-xs text-on-surface-variant font-mono truncate max-w-[200px]">Người thuê: {tenant}</p>
+                                        </div>
+                                        <div className="text-right">
+                                            <p className="text-[10px] uppercase tracking-widest font-bold text-on-surface-variant mb-1">Tiền cọc</p>
+                                            <p className="text-primary font-bold">{formatOasis(formatEther(deposit))} OASIS</p>
+                                        </div>
+                                    </div>
+                                    <div className="flex gap-3">
+                                        <Link 
+                                            to={`/manage-room/${rId}`}
+                                            className="flex-1 bg-primary/10 hover:bg-primary/20 text-primary border border-primary/20 py-2.5 rounded-xl text-xs font-bold uppercase tracking-widest flex items-center justify-center gap-2 transition-all"
+                                        >
+                                            Chi tiết & Xử lý
+                                        </Link>
+                                    </div>
+                                    {(isPending || isWaiting) && (
+                                        <div className="absolute inset-0 bg-surface/50 backdrop-blur-[1px] rounded-2xl flex items-center justify-center z-10">
+                                            <Loader2 className="w-8 h-8 text-primary animate-spin" />
+                                        </div>
+                                    )}
+                                </div>
+                            );
+                        })}
+                    </div>
+                </div>
+            )}
+
             {/* Main Content Area */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 {/* Manage Assets List */}
@@ -104,9 +160,9 @@ export default function Dashboard() {
                     <h2 className="text-xl font-headline font-bold flex items-center gap-2 mb-6">
                         <Home size={20} className="text-on-surface-variant" /> Tài sản của bạn
                     </h2>
-                    <div className="bg-surface-container-low border border-white/5 rounded-2xl overflow-hidden">
+                    <div className="bg-surface-container-low border border-black/5 dark:border-white/5 rounded-2xl overflow-hidden">
                         {/* List Header */}
-                        <div className="grid grid-cols-12 gap-4 p-4 border-b border-white/5 bg-surface-container/50 text-xs font-bold uppercase tracking-widest text-on-surface-variant hidden md:grid">
+                        <div className="grid grid-cols-12 gap-4 p-4 border-b border-black/5 dark:border-white/5 bg-surface-container/50 text-xs font-bold uppercase tracking-widest text-on-surface-variant hidden md:grid">
                             <div className="col-span-5">Phòng</div>
                             <div className="col-span-2 text-center">Trạng thái</div>
                             <div className="col-span-3 text-right">Giá / Cọc (OASIS)</div>
@@ -119,9 +175,9 @@ export default function Dashboard() {
                         ) : rooms.length === 0 ? (
                             <div className="p-8 text-center text-on-surface-variant font-mono text-sm uppercase tracking-widest">Bạn chưa có tài sản nào. Hãy thêm phòng mới!</div>
                         ) : rooms.map((room) => (
-                            <div key={room.ma_bat_dong_san} className="grid grid-cols-1 md:grid-cols-12 gap-4 p-4 border-b border-white/5 items-center hover:bg-white/[0.02] transition-colors">
+                            <div key={room.ma_bat_dong_san} className="grid grid-cols-1 md:grid-cols-12 gap-4 p-4 border-b border-black/5 dark:border-white/5 items-center hover:bg-white/[0.02] transition-colors">
                                 <div className="col-span-12 md:col-span-5 flex items-center gap-3">
-                                    <div className="w-12 h-12 rounded-lg overflow-hidden shrink-0 bg-surface-container border border-white/5">
+                                    <div className="w-12 h-12 rounded-lg overflow-hidden shrink-0 bg-surface-container border border-black/5 dark:border-white/5">
                                         {room.anh_dai_dien ? (
                                             <img src={room.anh_dai_dien} alt={room.ten} className="w-full h-full object-cover" />
                                         ) : (
@@ -134,9 +190,8 @@ export default function Dashboard() {
                                     </div>
                                 </div>
                                 <div className="col-span-12 md:col-span-2 md:text-center flex items-center md:justify-center">
-                                    <span className={`px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest rounded-md border ${room.trang_thai === "dang_thue" ? "bg-secondary/10 text-secondary border-secondary/20" : "bg-[#22C55E]/10 text-[#22C55E] border-[#22C55E]/20"
-                                        }`}>
-                                        {room.trang_thai === "dang_thue" ? "Đã cho thuê" : "Phòng trống"}
+                                    <span className={`px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest rounded-md border ${room.trang_thai === "da_thue" ? "bg-secondary/10 text-secondary border-secondary/20" : "bg-[#22C55E]/10 text-[#22C55E] border-[#22C55E]/20"}`}>
+                                        {room.trang_thai === "da_thue" ? "Đã cho thuê" : "Phòng trống"}
                                     </span>
                                 </div>
                                 <div className="col-span-12 md:col-span-3 md:text-right flex items-center justify-between md:block">
@@ -148,7 +203,7 @@ export default function Dashboard() {
                                     </div>
                                 </div>
                                 <div className="col-span-12 md:col-span-2 md:text-right flex justify-end">
-                                    <Link to={`/manage-room/${room.ma_bat_dong_san}`} className="text-xs font-bold uppercase tracking-widest bg-surface-container-highest hover:bg-white/10 px-3 py-2 rounded-lg border border-white/5 transition-colors">
+                                    <Link to={`/manage-room/${room.ma_bat_dong_san}`} className="text-xs font-bold uppercase tracking-widest bg-surface-container-highest hover:bg-black/10 dark:hover:bg-white/10 dark:bg-white/10 px-3 py-2 rounded-lg border border-black/5 dark:border-white/5 transition-colors">
                                         Quản lý
                                     </Link>
                                 </div>
@@ -166,37 +221,37 @@ export default function Dashboard() {
                         <div className="space-y-6 relative before:absolute before:inset-0 before:ml-4 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-white/10 before:to-transparent">
 
                             <div className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active">
-                                <div className="flex items-center justify-center w-8 h-8 rounded-full border border-white/10 bg-surface-container-highest text-primary shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 shadow-lg z-10">
+                                <div className="flex items-center justify-center w-8 h-8 rounded-full border border-black/10 dark:border-white/10 bg-surface-container-highest text-primary shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 shadow-lg z-10">
                                     <DollarSign size={14} />
                                 </div>
-                                <div className="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] p-4 rounded-xl glass-panel shadow-md text-sm border border-white/5">
+                                <div className="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] p-4 rounded-xl glass-panel shadow-md text-sm border border-black/5 dark:border-white/5">
                                     <p className="font-bold text-on-surface mb-1 text-xs">Nhận tiền thuê</p>
                                     <p className="text-on-surface-variant text-[10px] uppercase font-bold tracking-widest font-mono">{formatOasis(0.85)} OASIS • 2 giờ trước</p>
                                 </div>
                             </div>
 
                             <div className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active">
-                                <div className="flex items-center justify-center w-8 h-8 rounded-full border border-white/10 bg-surface-container-highest text-secondary shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 shadow-lg z-10">
+                                <div className="flex items-center justify-center w-8 h-8 rounded-full border border-black/10 dark:border-white/10 bg-surface-container-highest text-secondary shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 shadow-lg z-10">
                                     <FileCheck size={14} />
                                 </div>
-                                <div className="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] p-4 rounded-xl bg-surface-container-low shadow-md text-sm border border-white/5">
+                                <div className="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] p-4 rounded-xl bg-surface-container-low shadow-md text-sm border border-black/5 dark:border-white/5">
                                     <p className="font-bold text-on-surface mb-1 text-xs">Hợp đồng mới được ký</p>
                                     <p className="text-on-surface-variant text-[10px] uppercase font-bold tracking-widest font-mono">Phòng 204 • Hôm qua</p>
                                 </div>
                             </div>
 
                             <div className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active">
-                                <div className="flex items-center justify-center w-8 h-8 rounded-full border border-white/10 bg-surface-container-highest text-tertiary shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 shadow-lg z-10">
+                                <div className="flex items-center justify-center w-8 h-8 rounded-full border border-black/10 dark:border-white/10 bg-surface-container-highest text-tertiary shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 shadow-lg z-10">
                                     <Users size={14} />
                                 </div>
-                                <div className="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] p-4 rounded-xl bg-surface-container-low shadow-md text-sm border border-white/5 opacity-70">
+                                <div className="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] p-4 rounded-xl bg-surface-container-low shadow-md text-sm border border-black/5 dark:border-white/5 opacity-70">
                                     <p className="font-bold text-on-surface mb-1 text-xs">Phòng trống cập nhật</p>
                                     <p className="text-on-surface-variant text-[10px] uppercase font-bold tracking-widest font-mono">1 Phòng • 3 ngày trước</p>
                                 </div>
                             </div>
 
                         </div>
-                        <button className="w-full mt-6 text-xs font-bold uppercase tracking-widest text-on-surface-variant hover:text-white transition-colors text-center py-2">
+                        <button className="w-full mt-6 text-xs font-bold uppercase tracking-widest text-on-surface-variant hover:text-black dark:hover:text-white transition-colors text-center py-2">
                             Xem tất cả
                         </button>
                     </div>
@@ -205,3 +260,6 @@ export default function Dashboard() {
         </div>
     );
 }
+
+
+

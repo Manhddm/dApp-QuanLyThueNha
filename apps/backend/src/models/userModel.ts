@@ -7,6 +7,7 @@ export interface UpdateUserDTO {
   dia_chi_vi?: string;
   dang_hoat_dong?: boolean;
   vai_tro?: "admin" | "chu_nha" | "nguoi_thue";
+  so_cccd?: string;
 }
 
 // Kiểu dữ liệu người dùng
@@ -38,7 +39,7 @@ export const findUserByEmail = async (email: string): Promise<NguoiDung | null> 
 // Tìm người dùng theo ID
 export const findUserById = async (id: number): Promise<NguoiDung | null> => {
   const result = await pool.query<NguoiDung>(
-    "SELECT ma_nguoi_dung, ho_ten, email, so_dien_thoai, vai_tro, da_xac_thuc, dang_hoat_dong, anh_dai_dien, dia_chi_vi, ngay_tao FROM nguoi_dung WHERE ma_nguoi_dung = $1",
+    "SELECT ma_nguoi_dung, ho_ten, email, so_dien_thoai, so_cccd, vai_tro, da_xac_thuc, dang_hoat_dong, anh_dai_dien, dia_chi_vi, ngay_tao FROM nguoi_dung WHERE ma_nguoi_dung = $1",
     [id]
   );
   return result.rows[0] || null;
@@ -104,6 +105,10 @@ export const updateUser = async (
     fields.push(`dang_hoat_dong = $${idx++}`);
     values.push(data.dang_hoat_dong);
   }
+  if (data.so_cccd !== undefined) {
+    fields.push(`so_cccd = $${idx++}`);
+    values.push(data.so_cccd);
+  }
 
   if (fields.length === 0) return null;
 
@@ -123,7 +128,7 @@ export const getAllUsers = async (
   offset: number = 0,
   vai_tro?: string
 ): Promise<NguoiDung[]> => {
-  let query = `SELECT ma_nguoi_dung, ho_ten, email, so_dien_thoai, vai_tro, da_xac_thuc, dang_hoat_dong, anh_dai_dien, ngay_tao FROM nguoi_dung`;
+  let query = `SELECT ma_nguoi_dung, ho_ten, email, so_dien_thoai, so_cccd, vai_tro, da_xac_thuc, dang_hoat_dong, anh_dai_dien, ngay_tao FROM nguoi_dung`;
   const values: any[] = [];
   let idx = 1;
 

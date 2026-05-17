@@ -28,12 +28,12 @@ export default function Home() {
                             </Link>
                             <Link
                                 to="/dashboard"
-                                className="bg-transparent border border-outline-variant hover:bg-white/5 text-on-surface px-8 py-4 rounded-lg font-label font-bold uppercase tracking-widest transition-all"
+                                className="bg-transparent border border-outline-variant hover:bg-black/5 dark:hover:bg-white/5 dark:bg-white/5 text-on-surface px-8 py-4 rounded-lg font-label font-bold uppercase tracking-widest transition-all"
                             >
                                 Đăng phòng
                             </Link>
                         </div>
-                        <div className="mt-12 flex flex-wrap items-center gap-6 border-t border-white/5 pt-8">
+                        <div className="mt-12 flex flex-wrap items-center gap-6 border-t border-black/5 dark:border-white/5 pt-8">
                             <div>
                                 <p className="text-2xl font-headline font-bold text-on-surface">
                                     1.2k+
@@ -42,7 +42,7 @@ export default function Home() {
                                     Active Listings
                                 </p>
                             </div>
-                            <div className="w-px h-10 bg-white/10 hidden sm:block"></div>
+                            <div className="w-px h-10 bg-black/10 dark:bg-white/10 hidden sm:block"></div>
                             <div>
                                 <p className="text-2xl font-headline font-bold text-on-surface">
                                     500+
@@ -51,7 +51,7 @@ export default function Home() {
                                     Smart Contracts
                                 </p>
                             </div>
-                            <div className="w-px h-10 bg-white/10 hidden sm:block"></div>
+                            <div className="w-px h-10 bg-black/10 dark:bg-white/10 hidden sm:block"></div>
                             <div>
                                 <p className="text-2xl font-headline font-bold text-on-surface">
                                     0%
@@ -76,7 +76,7 @@ export default function Home() {
             </section>
 
             {/* Features Section */}
-            <section className="py-24 bg-surface-container-low relative border-y border-white/5">
+            <section className="py-24 bg-surface-container-low relative border-y border-black/5 dark:border-white/5">
                 <div className="max-w-7xl mx-auto px-8">
                     <div className="text-center mb-20">
                         <h2 className="text-4xl md:text-5xl font-headline font-bold tracking-tight text-on-background mb-4">
@@ -156,7 +156,7 @@ export default function Home() {
                             </p>
                         </div>
                     </div>
-                    <div className="md:col-span-2 bg-surface-container-high rounded-2xl p-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-8 border border-white/5">
+                    <div className="md:col-span-2 bg-surface-container-high rounded-2xl p-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-8 border border-black/5 dark:border-white/5">
                         <div className="flex-1">
                             <h5 className="text-xl font-headline font-bold mb-3">
                                 Bảo mật đa tầng
@@ -166,19 +166,19 @@ export default function Home() {
                                 an toàn cho người dùng.
                             </p>
                         </div>
-                        <div className="w-20 h-20 md:w-24 md:h-24 bg-surface shrink-0 rounded-full flex items-center justify-center border border-white/5 shadow-inner">
+                        <div className="w-20 h-20 md:w-24 md:h-24 bg-surface shrink-0 rounded-full flex items-center justify-center border border-black/5 dark:border-white/5 shadow-inner">
                             <svg className="w-10 h-10 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M12 11c0 3.517-1.009 6.799-2.753 9.571m-3.44-2.04l.054-.09A13.916 13.916 0 008 11a4 4 0 118 0c0 1.017-.07 2.019-.203 3m-2.118 6.844A21.88 21.88 0 0015.171 17m3.839 1.132c.645-2.266.99-4.659.99-7.132A8 8 0 008 4.07M3 15.364c.64-1.319 1-2.8 1-4.364 0-1.457.39-2.823 1.07-4"></path>
                             </svg>
                         </div>
                     </div>
-                    <div className="md:col-span-1 bg-gradient-to-br from-primary/20 to-secondary/20 rounded-2xl p-8 border border-white/5 flex flex-col justify-center items-center text-center">
+                    <div className="md:col-span-1 bg-gradient-to-br from-primary/20 to-secondary/20 rounded-2xl p-8 border border-black/5 dark:border-white/5 flex flex-col justify-center items-center text-center">
                         <h5 className="text-4xl lg:text-5xl font-headline font-bold mb-3 text-secondary-fixed">0.1%</h5>
                         <p className="text-on-surface-variant text-xs uppercase tracking-widest font-bold">
                             Transaction Fee
                         </p>
                     </div>
-                    <div className="md:col-span-1 bg-surface-container-highest rounded-2xl p-8 border border-white/5 flex flex-col justify-between">
+                    <div className="md:col-span-1 bg-surface-container-highest rounded-2xl p-8 border border-black/5 dark:border-white/5 flex flex-col justify-between">
                         <p className="text-on-surface-variant italic text-sm leading-relaxed relative">
                             <span className="text-3xl text-primary/30 absolute -top-4 -left-2 font-serif">"</span>
                             RentChain đã thay đổi hoàn toàn cách tôi quản lý căn hộ cho thuê của mình.
@@ -205,7 +205,7 @@ export default function Home() {
                         }}
                     ></div>
                     {/* Glow effect */}
-                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] bg-white/5 blur-3xl rounded-full"></div>
+                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] bg-black/5 dark:bg-white/5 blur-3xl rounded-full"></div>
                     <div className="relative z-10 space-y-10">
                         <h2 className="text-4xl md:text-6xl font-headline font-bold text-white mb-2 leading-tight">
                             Sẵn sàng để bắt đầu <br className="hidden md:block" /> hành trình mới?
@@ -214,7 +214,7 @@ export default function Home() {
                             <button className="bg-white text-on-primary-fixed px-10 py-4.5 rounded-xl font-label font-bold uppercase tracking-widest hover:scale-105 hover:bg-gray-50 transition-all shadow-xl shadow-black/20 flex items-center gap-2">
                                 Kết nối ví ngay <MoveRight size={18} />
                             </button>
-                            <button className="bg-black/20 backdrop-blur-md text-white px-10 py-4.5 rounded-xl font-label font-bold uppercase tracking-widest border border-white/20 hover:bg-black/30 transition-all flex items-center gap-2">
+                            <button className="bg-black/20 dark:bg-white/20 backdrop-blur-md text-white px-10 py-4.5 rounded-xl font-label font-bold uppercase tracking-widest border border-black/20 dark:border-white/20 hover:bg-black/30 dark:hover:bg-white/30 dark:bg-white/30 transition-all flex items-center gap-2">
                                 Xem hướng dẫn
                             </button>
                         </div>
@@ -224,3 +224,5 @@ export default function Home() {
         </div>
     );
 }
+
+

@@ -2,12 +2,17 @@ import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, Home, MapPin, Info, DollarSign, UploadCloud, Check } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
+import { useAccount, useConnect } from 'wagmi';
+import { injected } from 'wagmi/connectors';
+import { Wallet, Loader2 } from "lucide-react";
 import LocationPicker from "../components/LocationPicker";
 
 export default function EditRoom() {
     const { id } = useParams();
     const navigate = useNavigate();
     const { user, token } = useAuth();
+    const { address, isConnected } = useAccount();
+    const { connectors, connect, isPending: isConnecting } = useConnect();
     
     const [formData, setFormData] = useState({
         ten: "",
@@ -19,7 +24,8 @@ export default function EditRoom() {
         mo_ta: "",
         gia_thue: "",
         tien_dat_coc: "",
-        // Tiện nghi
+        vi_chu_nha: "",
+        anh_phu: [] as string[],
         so_phong_ngu: 1,
         selectedAmenities: [] as string[],
         vi_do: null as number | null,
@@ -60,6 +66,8 @@ export default function EditRoom() {
                         mo_ta: r.mo_ta || "",
                         gia_thue: r.gia_thue?.toString() || "",
                         tien_dat_coc: r.tien_dat_coc?.toString() || "",
+                        vi_chu_nha: r.vi_chu_nha || "",
+                        anh_phu: r.anh_phu || [],
                         so_phong_ngu: r.so_phong_ngu || 1,
                         selectedAmenities,
                         vi_do: r.vi_do ? parseFloat(r.vi_do) : null,
@@ -126,9 +134,11 @@ export default function EditRoom() {
                 gia_thue: Number(formData.gia_thue),
                 tien_dat_coc: Number(formData.tien_dat_coc),
                 tien_nghi: formData.selectedAmenities,
+                anh_phu: formData.anh_phu,
                 so_phong_ngu: Number(formData.so_phong_ngu),
                 vi_do: formData.vi_do,
-                kinh_do: formData.kinh_do
+                kinh_do: formData.kinh_do,
+                vi_chu_nha: formData.vi_chu_nha
             };
 
             const response = await fetch(`http://localhost:3000/api/bat-dong-san/${id}`, {
@@ -199,7 +209,7 @@ export default function EditRoom() {
                                 value={formData.ten}
                                 onChange={handleChange}
                                 type="text" 
-                                className="w-full bg-surface-container-highest border border-white/5 rounded-xl py-3.5 px-4 text-sm focus:ring-2 focus:ring-primary/50 outline-none transition-all placeholder:text-on-surface-variant/40"
+                                className="w-full bg-surface-container-highest border border-black/5 dark:border-white/5 rounded-xl py-3.5 px-4 text-sm focus:ring-2 focus:ring-primary/50 outline-none transition-all placeholder:text-on-surface-variant/40"
                                 placeholder="VD: Studio cao cấp trung tâm Quận 1..."
                             />
                         </div>
@@ -221,7 +231,7 @@ export default function EditRoom() {
                                 value={formData.thanh_pho}
                                 onChange={handleChange}
                                 type="text" 
-                                className="w-full bg-surface-container-highest border border-white/5 rounded-xl py-3.5 px-4 text-sm focus:ring-2 focus:ring-primary/50 outline-none transition-all"
+                                className="w-full bg-surface-container-highest border border-black/5 dark:border-white/5 rounded-xl py-3.5 px-4 text-sm focus:ring-2 focus:ring-primary/50 outline-none transition-all"
                                 placeholder="VD: TP. Hồ Chí Minh"
                             />
                         </div>
@@ -233,7 +243,7 @@ export default function EditRoom() {
                                 value={formData.quan_huyen}
                                 onChange={handleChange}
                                 type="text" 
-                                className="w-full bg-surface-container-highest border border-white/5 rounded-xl py-3.5 px-4 text-sm focus:ring-2 focus:ring-primary/50 outline-none transition-all"
+                                className="w-full bg-surface-container-highest border border-black/5 dark:border-white/5 rounded-xl py-3.5 px-4 text-sm focus:ring-2 focus:ring-primary/50 outline-none transition-all"
                                 placeholder="VD: Quận 1"
                             />
                         </div>
@@ -246,12 +256,12 @@ export default function EditRoom() {
                             value={formData.dia_chi}
                             onChange={handleChange}
                             type="text" 
-                            className="w-full bg-surface-container-highest border border-white/5 rounded-xl py-3.5 px-4 text-sm focus:ring-2 focus:ring-primary/50 outline-none transition-all"
+                            className="w-full bg-surface-container-highest border border-black/5 dark:border-white/5 rounded-xl py-3.5 px-4 text-sm focus:ring-2 focus:ring-primary/50 outline-none transition-all"
                             placeholder="Số nhà, Tên đường, Phường/Xã"
                         />
                     </div>
 
-                    <div className="mt-8 border-t border-white/5 pt-8">
+                    <div className="mt-8 border-t border-black/5 dark:border-white/5 pt-8">
                         <label className="block text-xs font-semibold text-on-surface-variant uppercase tracking-widest mb-4">Ghim vị trí trên bản đồ *</label>
                         <LocationPicker 
                             position={formData.vi_do && formData.kinh_do ? [formData.vi_do, formData.kinh_do] : null}
@@ -277,7 +287,7 @@ export default function EditRoom() {
                                 onChange={handleChange}
                                 type="number" 
                                 min="1"
-                                className="w-full bg-surface-container-highest border border-white/5 rounded-xl py-3.5 px-4 text-sm focus:ring-2 focus:ring-primary/50 outline-none transition-all"
+                                className="w-full bg-surface-container-highest border border-black/5 dark:border-white/5 rounded-xl py-3.5 px-4 text-sm focus:ring-2 focus:ring-primary/50 outline-none transition-all"
                             />
                         </div>
                         <div>
@@ -289,7 +299,7 @@ export default function EditRoom() {
                                 onChange={handleChange}
                                 type="number" 
                                 min="1"
-                                className="w-full bg-surface-container-highest border border-white/5 rounded-xl py-3.5 px-4 text-sm focus:ring-2 focus:ring-primary/50 outline-none transition-all"
+                                className="w-full bg-surface-container-highest border border-black/5 dark:border-white/5 rounded-xl py-3.5 px-4 text-sm focus:ring-2 focus:ring-primary/50 outline-none transition-all"
                             />
                         </div>
                         <div>
@@ -301,7 +311,7 @@ export default function EditRoom() {
                                 onChange={handleChange}
                                 type="number" 
                                 min="1"
-                                className="w-full bg-surface-container-highest border border-white/5 rounded-xl py-3.5 px-4 text-sm focus:ring-2 focus:ring-primary/50 outline-none transition-all"
+                                className="w-full bg-surface-container-highest border border-black/5 dark:border-white/5 rounded-xl py-3.5 px-4 text-sm focus:ring-2 focus:ring-primary/50 outline-none transition-all"
                             />
                         </div>
                     </div>
@@ -314,9 +324,9 @@ export default function EditRoom() {
                                     key={amenity.id}
                                     type="button"
                                     onClick={() => toggleAmenity(amenity.id)}
-                                    className={`flex items-center gap-3 p-4 rounded-xl border transition-all ${formData.selectedAmenities.includes(amenity.id) ? 'bg-primary/10 border-primary text-primary' : 'bg-surface-container-highest border-white/5 text-on-surface-variant hover:border-white/20'}`}
+                                    className={`flex items-center gap-3 p-4 rounded-xl border transition-all ${formData.selectedAmenities.includes(amenity.id) ? 'bg-primary/10 border-primary text-primary' : 'bg-surface-container-highest border-black/5 dark:border-white/5 text-on-surface-variant hover:border-black/20 dark:border-white/20'}`}
                                 >
-                                    <div className={`w-5 h-5 rounded flex items-center justify-center border ${formData.selectedAmenities.includes(amenity.id) ? 'bg-primary border-primary' : 'border-white/20'}`}>
+                                    <div className={`w-5 h-5 rounded flex items-center justify-center border ${formData.selectedAmenities.includes(amenity.id) ? 'bg-primary border-primary' : 'border-black/20 dark:border-white/20'}`}>
                                         {formData.selectedAmenities.includes(amenity.id) && <Check size={12} className="text-on-primary" strokeWidth={4} />}
                                     </div>
                                     <span className="text-sm font-bold">{amenity.label}</span>
@@ -332,7 +342,7 @@ export default function EditRoom() {
                             value={formData.mo_ta}
                             onChange={handleChange}
                             rows={4}
-                            className="w-full bg-surface-container-highest border border-white/5 rounded-xl py-3.5 px-4 text-sm focus:ring-2 focus:ring-primary/50 outline-none transition-all resize-none placeholder:text-on-surface-variant/40"
+                            className="w-full bg-surface-container-highest border border-black/5 dark:border-white/5 rounded-xl py-3.5 px-4 text-sm focus:ring-2 focus:ring-primary/50 outline-none transition-all resize-none placeholder:text-on-surface-variant/40"
                             placeholder="Mô tả thêm về căn phòng, nội thất, quy định..."
                         ></textarea>
                     </div>
@@ -387,16 +397,66 @@ export default function EditRoom() {
                     </div>
                 </section>
 
-                <div className="flex justify-end pt-4">
+                {/* 4. Blockchain Info */}
+                <section className="glass-panel p-8 rounded-2xl border border-primary/20 bg-primary/5 shadow-glow/5 relative overflow-hidden">
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full blur-3xl -mr-16 -mt-16"></div>
+                    <h2 className="text-xl font-headline font-bold mb-6 flex items-center gap-2 text-primary">
+                        <Wallet size={24} /> 4. Thông tin Blockchain
+                    </h2>
+                    
+                    <div className="space-y-6">
+                        <div>
+                            <label className="block text-xs font-bold uppercase tracking-widest text-on-surface-variant mb-2">
+                                Địa chỉ ví nhận tiền (OASIS) *
+                            </label>
+                            <div className="flex flex-col md:flex-row gap-3">
+                                <input
+                                    type="text"
+                                    required
+                                    name="vi_chu_nha"
+                                    placeholder="0x..."
+                                    value={formData.vi_chu_nha}
+                                    onChange={handleChange}
+                                    className="flex-1 bg-surface-container-highest border border-black/10 dark:border-white/10 rounded-xl px-4 py-3.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all font-mono"
+                                />
+                                {!isConnected && (
+                                    <button
+                                        type="button"
+                                        onClick={() => connect({ connector: connectors[0] })}
+                                        disabled={isConnecting}
+                                        className="bg-primary text-on-primary-fixed px-6 py-3.5 rounded-xl font-label font-bold uppercase tracking-wider text-xs transition-all flex items-center justify-center gap-2 shadow-glow/20"
+                                    >
+                                        {isConnecting ? <Loader2 size={16} className="animate-spin" /> : <Wallet size={16} />}
+                                        Connect Wallet
+                                    </button>
+                                )}
+                            </div>
+                            <p className="mt-3 text-[10px] text-on-surface-variant leading-relaxed opacity-70">
+                                <Info size={10} className="inline mr-1" /> 
+                                Địa chỉ này sẽ được dùng để nhận tiền đặt cọc và tiền thuê hàng tháng. Hãy đảm bảo bạn có quyền truy cập vào ví này.
+                            </p>
+                        </div>
+                    </div>
+                </section>
+
+                <div className="pt-6">
                     <button 
-                        type="submit" 
+                        type="submit"
                         disabled={loading}
-                        className="bg-primary text-on-primary-fixed hover:bg-primary-dim px-10 py-4.5 rounded-xl font-label font-bold uppercase tracking-widest transition-all shadow-[0_0_20px_rgba(168,164,255,0.4)] hover:shadow-[0_0_30px_rgba(168,164,255,0.6)] disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                        className="w-full bg-gradient-to-r from-primary to-primary-dim text-on-primary-fixed py-5 rounded-2xl font-label font-bold uppercase tracking-[0.2em] hover:shadow-glow active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3 text-sm"
                     >
-                        {loading ? "Đang xử lý..." : "Lưu Thay Đổi"}
+                        {loading ? (
+                            <div className="w-5 h-5 border-2 border-on-primary-fixed/30 border-t-on-primary-fixed rounded-full animate-spin"></div>
+                        ) : (
+                            <>
+                                <Check size={20} /> Cập nhật phòng
+                            </>
+                        )}
                     </button>
                 </div>
             </form>
         </div>
     );
 }
+
+

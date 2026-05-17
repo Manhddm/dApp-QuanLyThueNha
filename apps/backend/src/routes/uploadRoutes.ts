@@ -38,7 +38,6 @@ router.post('/', upload.array('images', 10), (req: Request, res: Response) => {
 
         // Tạo mảng URL trả về
         const urls = files.map(file => {
-            // Giả định backend chạy trên port 3000
             return `http://localhost:3000/uploads/${file.filename}`;
         });
 
@@ -50,6 +49,27 @@ router.post('/', upload.array('images', 10), (req: Request, res: Response) => {
     } catch (error) {
         console.error("Lỗi upload:", error);
         res.status(500).json({ success: false, message: "Lỗi máy chủ khi tải lên" });
+    }
+});
+
+// Endpoint to upload a single file (e.g. PDF contract)
+router.post('/file', upload.single('file'), (req: Request, res: Response) => {
+    try {
+        const file = req.file;
+        if (!file) {
+            return res.status(400).json({ success: false, message: "Không có file nào được tải lên" });
+        }
+
+        const url = `http://localhost:3000/uploads/${file.filename}`;
+
+        res.status(200).json({
+            success: true,
+            message: "Tải lên file thành công",
+            url: url
+        });
+    } catch (error) {
+        console.error("Lỗi upload file:", error);
+        res.status(500).json({ success: false, message: "Lỗi máy chủ khi tải lên file" });
     }
 });
 

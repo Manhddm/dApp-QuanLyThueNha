@@ -7,6 +7,8 @@ export interface User {
   email: string;
   vai_tro: string;
   dia_chi_vi?: string;
+  so_dien_thoai?: string;
+  so_cccd?: string;
   da_xac_thuc?: boolean;
 }
 
@@ -15,6 +17,7 @@ interface AuthContextType {
   token: string | null;
   login: (token: string, user: User) => void;
   logout: () => void;
+  updateUserContext: (user: User) => void;
   loading: boolean;
 }
 
@@ -72,8 +75,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     message.success("Đã đăng xuất");
   };
 
+  const updateUserContext = (updatedUser: User) => {
+    setUser(updatedUser);
+  };
+
   return (
-    <AuthContext.Provider value={{ user, token, login, logout, loading }}>
+    <AuthContext.Provider value={{ user, token, login, logout, updateUserContext, loading }}>
       {children}
     </AuthContext.Provider>
   );

@@ -103,3 +103,65 @@ export const getMe = async (req: AuthRequest, res: Response, next: NextFunction)
     next(err);
   }
 };
+
+// PUT /api/auth/profile - Cập nhật thông tin cá nhân
+export const updateProfile = async (req: AuthRequest, res: Response, next: NextFunction) => {
+  try {
+    const userId = req.user?.ma_nguoi_dung;
+    if (!userId) {
+      res.status(401).json({ success: false, message: "Chưa xác thực" });
+      return;
+    }
+
+    const { ho_ten, so_dien_thoai, so_cccd, anh_dai_dien, dia_chi_vi } = req.body;
+    
+    const { updateUser } = require("../models/userModel");
+    const updatedUser = await updateUser(userId, { ho_ten, so_dien_thoai, so_cccd, anh_dai_dien, dia_chi_vi });
+
+    if (!updatedUser) {
+      res.status(400).json({ success: false, message: "Không thể cập nhật thông tin" });
+      return;
+    }
+
+    res.json({ success: true, message: "Cập nhật thành công", data: updatedUser });
+  } catch (err: any) {
+    if (err.code === '23505') {
+      res.status(400).json({ success: false, message: "Địa chỉ ví Blockchain này đã được liên kết với một tài khoản khác. Vui lòng chuyển sang ví khác!" });
+      return;
+    }
+    next(err);
+  }
+};
+
+// GET /api/auth/user/:wallet - Lấy thông tin công khai theo ví
+export const getUserByWallet = async (req: AuthRequest, res: Response, next: NextFunction) => {
+  try {
+    const { wallet } = req.params;
+    if (!wallet) {
+      res.status(400).json({ success: false, message: "Thiếu địa chỉ ví" });
+      return;
+    }
+
+    const { findUserByWallet } = require("../models/userModel");
+    const user = await findUserByWallet(wallet);
+
+    if (!user) {
+      res.status(404).json({ success: false, message: "Không tìm thấy người dùng" });
+      return;
+    }
+
+    // Chỉ trả về các thông tin cần thiết cho hợp đồng
+    const publicProfile = {
+      ma_nguoi_dung: user.ma_nguoi_dung,
+      ho_ten: user.ho_ten,
+      so_dien_thoai: user.so_dien_thoai,
+      so_cccd: user.so_cccd,
+      dia_chi_vi: user.dia_chi_vi,
+      email: user.email
+    };
+
+    res.json({ success: true, data: publicProfile });
+  } catch (err) {
+    next(err);
+  }
+};
