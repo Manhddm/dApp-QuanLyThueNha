@@ -116,7 +116,7 @@ export default function Dashboard() {
                         </div>
                     </div>
                     <p className="text-xs uppercase tracking-widest font-bold text-on-surface-variant mb-1">Smart Contracts</p>
-                    <p className="text-3xl font-headline font-bold text-on-surface">{landlordContracts.length}</p>
+                    <p className="text-3xl font-headline font-bold text-on-surface">{activeContracts.length}</p>
                 </div>
             </div>
 

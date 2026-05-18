@@ -136,10 +136,7 @@ export default function Login() {
                 </div>
             </main>
 
-            {/* Background Decoration Image */}
-            <div className="fixed bottom-0 right-0 w-1/3 h-1/2 opacity-20 pointer-events-none z-0">
-                <img alt="abstract blockchain" className="w-full h-full object-cover mix-blend-overlay" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCql6IuL8woexcVJNRPuVRRBTJXAoCS8zVgMOoOb_ogzwrhNLfQO9vNzctR28I50HqDYY3JNN4C-OJb8bST0UApyeFMgw7eLsXq1Pd6UkBx9gqeifcX9_LgQuV_Itd1MJrC9unoUA4a6e1uwToA5IGGbPqvJdGK5ZrnBEbqQ99DBRuTxp7KSSohVxlXtXNYuDJPCyXacEwQ8-ytvEVrIuNGbQaTgjZmsUfIZuFgdhyZKgWIMSJBZ4bDXDRC2B5L_fyrHGgwOxBGoEg" />
-            </div>
+
         </div>
     );
 }

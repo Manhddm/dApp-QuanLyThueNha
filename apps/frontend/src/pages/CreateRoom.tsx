@@ -31,9 +31,9 @@ export default function CreateRoom() {
         kinh_do: null as number | null,
     });
 
-    // Cập nhật ví khi connect thành công
+    // Cập nhật ví khi connect thành công - luôn sync để đảm bảo đúng ví đang dùng
     useEffect(() => {
-        if (address && !formData.vi_chu_nha) {
+        if (address) {
             setFormData(prev => ({ ...prev, vi_chu_nha: address }));
         }
     }, [address]);
@@ -479,14 +479,13 @@ export default function CreateRoom() {
                     <div className="space-y-6">
                         <div>
                             <label className="block text-xs font-bold uppercase tracking-widest text-on-surface-variant mb-2">
-                                Địa chỉ ví nhận tiền (OASIS) *
+                                Địa chỉ ví nhận tiền (OASIS) <span className="normal-case text-[10px] text-on-surface-variant/60 font-normal">(Tùy chọn — có thể cập nhật sau)</span>
                             </label>
                             <div className="flex flex-col md:flex-row gap-3">
                                 <input
                                     type="text"
-                                    required
                                     name="vi_chu_nha"
-                                    placeholder="0x..."
+                                    placeholder="0x... (Tự động điền nếu bạn đã kết nối MetaMask)"
                                     value={formData.vi_chu_nha}
                                     onChange={handleChange}
                                     className="flex-1 bg-surface-container-highest border border-black/10 dark:border-white/10 rounded-xl px-4 py-3.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all font-mono"
