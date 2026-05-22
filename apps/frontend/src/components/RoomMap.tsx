@@ -118,7 +118,8 @@ export default function RoomMap({ rooms }: { rooms: any[] }) {
                                             to={`/rooms/${room.ma_bat_dong_san}`}
                                             target="_blank"
                                             rel="noopener noreferrer"
-                                            className="block w-full text-center bg-primary hover:bg-primary-dim text-white text-xs font-bold py-2 rounded-lg mt-3 transition-colors"
+                                            className="block w-full text-center bg-primary hover:bg-primary-dim text-xs font-bold py-2 rounded-lg mt-3 transition-colors"
+                                            style={{ color: '#ffffff' }}
                                         >
                                             Xem chi tiết
                                         </Link>

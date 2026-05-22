@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { MapPin, SlidersHorizontal, Home, XCircle, Search, Map, LayoutGrid, Info, Filter, X, Check, ChevronLeft, ChevronRight } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import RoomMap from "../components/RoomMap";
@@ -7,6 +7,7 @@ import { formatOasis } from "../lib/utils";
 
 export default function Rooms() {
     const { user } = useAuth();
+    const location = useLocation();
     
     // State for rooms
     const [rooms, setRooms] = useState<any[]>([]);
@@ -63,11 +64,11 @@ export default function Rooms() {
         }
     };
 
-    // Auto fetch when page changes
+    // Auto fetch when page or location changes
     useEffect(() => {
         fetchRooms();
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [page]);
+    }, [page, location.key]);
 
     const handleApplyFilters = () => {
         setPage(1); // Reset to page 1 on new filter
@@ -243,10 +244,10 @@ export default function Rooms() {
                 <div className="space-y-1">
                     <div className="flex items-center gap-2 text-primary font-bold text-sm uppercase tracking-[0.2em] mb-2">
                         <div className="w-8 h-px bg-primary"></div>
-                        <span>Dtravel Platform</span>
+                        <span>RentChain Dapp</span>
                     </div>
-                    <h1 className="font-headline text-5xl md:text-6xl font-bold tracking-tighter text-on-background leading-[0.9]">
-                        Tìm Kiếm <br /><span className="text-primary italic">Tổ Ấm</span> Mới
+                    <h1 className="font-headline text-3xl md:text-4xl font-bold tracking-tighter text-on-background leading-tight">
+                        Tìm Kiếm <br /><span className="text-primary italic">Phòng Trọ</span> Ưng Ý
                     </h1>
                 </div>
                 
@@ -342,12 +343,6 @@ export default function Rooms() {
                                         src={imageUrl}
                                         alt={room.ten}
                                     />
-                                    {room.trang_thai === 'trong' && (
-                                        <div className="absolute top-6 left-6 bg-green-500/10 backdrop-blur-md border border-green-500/20 text-green-400 px-4 py-2 rounded-full text-[10px] font-bold uppercase tracking-widest flex items-center gap-2 shadow-lg">
-                                            <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span>
-                                            Available
-                                        </div>
-                                    )}
                                     <div className="absolute top-6 right-6 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity transform translate-x-4 group-hover:translate-x-0 duration-500">
                                         <button className="p-3 bg-surface/80 backdrop-blur-md rounded-2xl border border-black/10 dark:border-white/10 text-on-surface hover:text-primary transition-colors">
                                             <Filter className="w-5 h-5" />
@@ -367,7 +362,7 @@ export default function Rooms() {
                                         </div>
                                     </div>
                                     
-                                    <div className="flex gap-4 mb-8">
+                                    <div className="flex flex-wrap items-center gap-3 mb-8">
                                         <div className="flex items-center gap-1.5 px-3 py-1.5 bg-black/5 dark:bg-white/5 rounded-xl border border-black/5 dark:border-white/5 text-[11px] font-bold text-on-surface-variant">
                                             <Home className="w-3.5 h-3.5 text-primary" />
                                             {room.so_phong_ngu || 1} Bed
@@ -376,6 +371,18 @@ export default function Rooms() {
                                             <LayoutGrid className="w-3.5 h-3.5 text-secondary" />
                                             {room.dien_tich} m²
                                         </div>
+                                        <span className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-[11px] font-bold ${
+                                            room.trang_thai === 'da_thue' || room.trang_thai === 'dang_thue'
+                                                ? 'bg-orange-500/10 text-orange-400 border-orange-500/20'
+                                                : 'bg-[#22C55E]/10 text-[#22C55E] border-[#22C55E]/20'
+                                        }`}>
+                                            <span className={`w-1.5 h-1.5 rounded-full ${
+                                                room.trang_thai === 'da_thue' || room.trang_thai === 'dang_thue'
+                                                    ? 'bg-orange-400'
+                                                    : 'bg-[#22C55E] animate-pulse'
+                                            }`}></span>
+                                            {room.trang_thai === 'da_thue' || room.trang_thai === 'dang_thue' ? 'Đã cho thuê' : 'Phòng trống'}
+                                        </span>
                                     </div>
 
                                     <div className="flex items-center justify-between mt-auto pt-6 border-t border-black/5 dark:border-white/5">

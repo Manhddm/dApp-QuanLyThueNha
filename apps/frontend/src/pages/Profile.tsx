@@ -3,7 +3,7 @@ import { User as UserIcon, Phone, FileText, Check, Loader2, Camera, AlertCircle,
 import { useAuth } from '../context/AuthContext';
 import { message } from 'antd';
 import { useLocation, useNavigate, Link } from 'react-router-dom';
-import { useAccount } from 'wagmi';
+
 
 export default function Profile() {
     const { user, token, updateUserContext } = useAuth();
@@ -15,14 +15,11 @@ export default function Profile() {
     const redirectUrl = queryParams.get('redirect');
     const isRequiredMode = !!redirectUrl;
     
-    const { address } = useAccount();
-
     const [formData, setFormData] = useState({
         ho_ten: '',
         so_dien_thoai: '',
         so_cccd: '',
-        anh_dai_dien: '',
-        dia_chi_vi: ''
+        anh_dai_dien: ''
     });
     
     const [loading, setLoading] = useState(false);
@@ -36,11 +33,10 @@ export default function Profile() {
                 ho_ten: user.ho_ten || '',
                 so_dien_thoai: user.so_dien_thoai || '',
                 so_cccd: user.so_cccd || '',
-                anh_dai_dien: user.anh_dai_dien || '',
-                dia_chi_vi: user.dia_chi_vi || address || ''
+                anh_dai_dien: user.anh_dai_dien || ''
             });
         }
-    }, [user, address]);
+    }, [user]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -194,17 +190,6 @@ export default function Profile() {
                         </p>
                         
                         <div className="w-full mt-8 pt-6 border-t border-black/5 dark:border-white/5 text-left space-y-4">
-                            <div>
-                                <p className="text-[10px] uppercase tracking-widest text-on-surface-variant font-bold mb-1">Ví Blockchain</p>
-                                <p className="text-xs font-mono bg-surface-container-highest p-2 rounded-lg truncate border border-black/5 dark:border-white/5">
-                                    {formData.dia_chi_vi || 'Chưa liên kết'}
-                                </p>
-                                {!user.dia_chi_vi && address && (
-                                    <p className="text-[10px] text-orange-500 mt-1">
-                                        * Sẽ được liên kết khi bạn bấm Lưu.
-                                    </p>
-                                )}
-                            </div>
                             <div>
                                 <p className="text-[10px] uppercase tracking-widest text-on-surface-variant font-bold mb-1">Email</p>
                                 <p className="text-sm font-medium text-on-surface truncate">{user.email}</p>

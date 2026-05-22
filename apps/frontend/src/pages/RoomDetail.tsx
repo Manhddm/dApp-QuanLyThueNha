@@ -1,5 +1,5 @@
 import { useParams, Link } from "react-router-dom";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Copy, MapPin, ShieldCheck, FileText, ChevronLeft, Calendar, Coins, History, Loader2, AlertCircle, Check } from "lucide-react";
 import { useAuth } from '../context/AuthContext';
 import { GlobalLoading } from '../components/GlobalLoading';
@@ -20,7 +20,7 @@ export default function RoomDetail() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     
-    const { thuePhong, myContracts, isPending, isWaiting, isSuccess, hash: rentHash, error: contractError } = useRentHouse();
+    const { thuePhong, myContracts, refetchMyContracts, isPending, isWaiting, isSuccess, hash: rentHash, error: contractError } = useRentHouse();
     const { isConnected, address } = useAccount();
     const { connectors, connect } = useConnect();
     
@@ -34,30 +34,29 @@ export default function RoomDetail() {
     const [isContractModalOpen, setIsContractModalOpen] = useState(false);
     const [landlordProfile, setLandlordProfile] = useState<any>(null);
 
-    useEffect(() => {
-        const fetchRoom = async () => {
-            setLoading(true);
-            try {
-                const response = await fetch(`http://localhost:3000/api/bat-dong-san/${id}`);
-                const result = await response.json();
-                
-                if (result.success) {
-                    setRoom(result.data);
-                } else {
-                    setError(result.message || "Không thể tải thông tin phòng");
-                }
-            } catch (err) {
-                console.error("Error fetching room:", err);
-                setError("Đã xảy ra lỗi khi kết nối đến máy chủ");
-            } finally {
-                setLoading(false);
+    const fetchRoom = useCallback(async () => {
+        if (!id) return;
+        setLoading(true);
+        try {
+            const response = await fetch(`http://localhost:3000/api/bat-dong-san/${id}`);
+            const result = await response.json();
+            
+            if (result.success) {
+                setRoom(result.data);
+            } else {
+                setError(result.message || "Không thể tải thông tin phòng");
             }
-        };
-
-        if (id) {
-            fetchRoom();
+        } catch (err) {
+            console.error("Error fetching room:", err);
+            setError("Đã xảy ra lỗi khi kết nối đến máy chủ");
+        } finally {
+            setLoading(false);
         }
     }, [id]);
+
+    useEffect(() => {
+        fetchRoom();
+    }, [fetchRoom]);
 
     useEffect(() => {
         // Fetch Landlord profile when room is loaded
@@ -154,9 +153,9 @@ export default function RoomDetail() {
     }
 
     const statusConfig: any = {
-        'trong': { label: 'Available', color: 'text-green-400', bg: 'bg-green-500/20', border: 'border-green-500/30' },
-        'da_thue': { label: 'Rented', color: 'text-orange-400', bg: 'bg-orange-500/20', border: 'border-orange-500/30' },
-        'bao_tri': { label: 'Maintenance', color: 'text-red-400', bg: 'bg-red-500/20', border: 'border-red-500/30' }
+        'trong': { label: 'Phòng trống', color: 'text-green-400', bg: 'bg-green-500/20', border: 'border-green-500/30' },
+        'da_thue': { label: 'Đã cho thuê', color: 'text-orange-400', bg: 'bg-orange-500/20', border: 'border-orange-500/30' },
+        'bao_tri': { label: 'Bảo trì', color: 'text-red-400', bg: 'bg-red-500/20', border: 'border-red-500/30' }
     };
     const currentStatus = statusConfig[room.trang_thai] || statusConfig['trong'];
 
@@ -183,6 +182,7 @@ export default function RoomDetail() {
             return;
         }
 
+        setIsContractModalOpen(false);
         setActionLoading(true);
         try {
             const rentPrice = parseEther(room.gia_thue.toString());
@@ -243,9 +243,10 @@ export default function RoomDetail() {
                         </div>
 
                         <button 
-                            onClick={() => {
+                            onClick={async () => {
                                 setActionSuccess(null);
-                                window.location.reload();
+                                await fetchRoom();
+                                if (refetchMyContracts) await refetchMyContracts();
                             }}
                             className="w-full py-4 bg-primary text-on-primary rounded-xl font-bold uppercase tracking-widest text-sm hover:shadow-glow transition-all"
                         >
@@ -411,11 +412,19 @@ export default function RoomDetail() {
 
                         {/* Cảnh báo chưa kết nối ví (nếu có) */}
                         {!isConnected && (
-                            <div className="bg-orange-500/10 border border-orange-500/20 p-4 rounded-xl mb-4 flex items-start gap-3">
-                                <AlertCircle size={18} className="text-orange-500 shrink-0 mt-0.5" />
-                                <p className="text-sm text-orange-500 font-medium leading-relaxed">
-                                    Vui lòng kết nối ví Oasis Wallet của bạn bằng nút phía trên để có thể ký hợp đồng thuê phòng.
-                                </p>
+                            <div className="bg-orange-500/10 border border-orange-500/20 p-4 rounded-xl mb-4 flex flex-col gap-3">
+                                <div className="flex items-start gap-3">
+                                    <AlertCircle size={18} className="text-orange-500 shrink-0 mt-0.5" />
+                                    <p className="text-sm text-orange-500 font-medium leading-relaxed">
+                                        Bạn chưa kết nối ví Blockchain. Vui lòng kết nối ví để tiến hành xem và ký hợp đồng thuê phòng trọ.
+                                    </p>
+                                </div>
+                                <button 
+                                    onClick={() => connect({ connector: connectors[0] })}
+                                    className="bg-orange-500 text-white py-2 rounded-lg font-label font-bold text-xs uppercase tracking-wider hover:bg-orange-600 active:scale-[0.98] transition-all w-full flex items-center justify-center gap-1.5 shadow-sm"
+                                >
+                                    Kết nối ví ngay
+                                </button>
                             </div>
                         )}
 
@@ -469,7 +478,7 @@ export default function RoomDetail() {
                                             </div>
                                             <button 
                                                 disabled={room.trang_thai !== 'trong' || isPending || isWaiting}
-                                                onClick={handleRent}
+                                                onClick={handleOpenContract}
                                                 className={`w-full ${room.trang_thai === 'trong' ? 'bg-gradient-to-r from-primary to-primary-dim hover:shadow-glow' : 'bg-surface-container-highest cursor-not-allowed grayscale'} text-on-primary-fixed py-4 rounded-xl font-label font-bold uppercase tracking-widest transition-all mb-4 text-sm flex items-center justify-center gap-2`}
                                             >
                                                 {(isPending || isWaiting) ? (
@@ -477,12 +486,24 @@ export default function RoomDetail() {
                                                 ) : (
                                                     <FileText size={18} />
                                                 )}
-                                                {isWaiting ? "Đang xác thực..." : isPending ? "Đang gửi..." : "Ký Lại Smart Contract"}
+                                                {isWaiting ? "Đang xác thực..." : isPending ? "Đang gửi..." : "Xem & Ký Lại Hợp Đồng"}
                                             </button>
                                         </>
                                     );
                                 }
+                                if (status === 4) {
+                                    return (
+                                        <div className="mb-4 p-4 bg-red-500/10 border border-red-500/25 rounded-xl text-center text-red-400">
+                                            <AlertCircle className="w-8 h-8 mx-auto mb-2 text-red-500 animate-pulse" />
+                                            <p className="font-bold text-xs uppercase tracking-widest">Giao Dịch Bị Khóa ⚠️</p>
+                                            <p className="text-[11px] opacity-90 mt-1.5 leading-relaxed">
+                                                Tài khoản của bạn đã vi phạm hợp đồng thuê trước đó tại phòng này (Bị cưỡng chế thu hồi cọc). Bạn không thể tiếp tục đăng ký thuê. Vui lòng liên hệ chủ nhà để giải quyết.
+                                            </p>
+                                        </div>
+                                    );
+                                }
                             }
+
 
                             return (
                                 <button 
